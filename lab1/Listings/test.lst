@@ -1,0 +1,45 @@
+
+
+
+ARM Macro Assembler    Page 1 
+
+
+    1 00000000                 AREA             test, CODE, READONLY
+    2 00000000                 EXPORT           myfunction
+    3 00000000         myfunction
+    4 00000000 F04F 0119       MOV              R1, #25
+    5 00000004 F04F 024B       MOV              R2, #75
+    6 00000008 4411            ADD              R1, R2, R1
+    7 0000000A 4770            BX               LR          ;
+    8 0000000C                 END
+Command Line: --debug --xref --cpu=Cortex-M4.fp --apcs=interwork --depend=.\obj
+ects\test.d -o.\objects\test.o -I"C:\Users\Ryan\Dropbox\ECSE 426\Lab 1\RTE" -I"
+C:\Users\Ryan\Dropbox\ECSE 426\Lab 1\RTE\Device\STM32F407VG" -IC:\Keil\ARM\PACK
+\ARM\CMSIS\4.2.0\CMSIS\Include -IC:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Devi
+ce\Include --predefine="__EVAL SETA 1" --predefine="__UVISION_VERSION SETA 513"
+ --predefine="_RTE_ SETA 1" --predefine="STM32F40_41xxx SETA 1" --list=.\listin
+gs\test.lst test.s
+
+
+
+ARM Macro Assembler    Page 1 Alphabetic symbol ordering
+Relocatable symbols
+
+myfunction 00000000
+
+Symbol: myfunction
+   Definitions
+      At line 3 in file test.s
+   Uses
+      At line 2 in file test.s
+Comment: myfunction used once
+test 00000000
+
+Symbol: test
+   Definitions
+      At line 1 in file test.s
+   Uses
+      None
+Comment: test unused
+2 symbols
+337 symbols in table
