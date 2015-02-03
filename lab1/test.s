@@ -11,20 +11,22 @@ Kalmanfilter_asm
 	; 		p = R2 + 12
 	; 		k = R2 + 16
 	
-	
+
 
 startAddress EQU 0x20000000				; Start address of Kalman struct.  Address corresponds to the beginning of SRAM
 
 ;;;Temporarily hard code the number of data points in the test vector
 arrayLength	EQU 5*4							
-filteredArray EQU 0x21000000			; Start address for the filtered array
+filteredArray EQU 0x20000014			; Start address for the filtered array
 increment EQU 4							; Amount to increment pointers by
-structHeight EQU 20				        ; Note: this value is dependent on the depth									
       
 	LDR R1, =test_vector 				; Pointer to measurements
 	MOV R2, #startAddress				; Load the address of the Kalman struct
 	MOV R3, #filteredArray				; Load the address of the filtered array
 	ADD R7, R1, #arrayLength			; Add test vector length to test vector pointer
+	
+	SUB R13, R13, #4					; Decrement stack pointer
+	STR	R7, [R13]						; Store the array length into the stack
 	
 	; Initialize 'q' and 'r' to something to prevent getting divide by zero
 	VMOV.F32 S0, #0.5
@@ -33,11 +35,14 @@ structHeight EQU 20				        ; Note: this value is dependent on the depth
 	
 kalman_update
 	
+	LDR R7, [R13]						; Load the array length from the stack
+	
 	; self.p = self.p + self.q
 	VLDR.F32 S0, [R2, #12]				; Load 'p' from memory
 	VLDR.F32 S1, [R2]					; Load 'q' from memory
 	VADD.F32 S1, S0, S1					; S1 = self.p + self.q
 	VSTR.F32 S1, [R2, #12]				; Store 'p' into memory
+	VMOV.F32 S0, S1						; Move new value of p into S0
 	
 	; self.k = self.p / (self.p + self.r)
 	VLDR.F32 S1, [R2, #4]				; Load value 'r' from memory
@@ -73,7 +78,7 @@ kalman_update
 	
 	align 4
 test_vector
-	DCFS 0.08592903,  0.02212529,  0.09950619, -0.0108313,  0.13294764
+	DCFS 1.5, 3.2, 2.5, 3.4, 5.3
 	END
 
 	

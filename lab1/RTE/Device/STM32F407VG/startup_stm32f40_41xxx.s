@@ -176,31 +176,31 @@ __Vectors_Size  EQU  __Vectors_End - __Vectors
 ; Reset handler
 Reset_Handler    PROC
                  EXPORT  Reset_Handler             [WEAK]
-        ;IMPORT  SystemInit
-        ;IMPORT  __main
-		
-		; CPACR is located at address 0xE000ED88
-		LDR.W	R0, =0xE000ED88
+       ; IMPORT  SystemInit
+       
+		   
+		   ; CPACR is located at address 0xE000ED88
+		LDR.W R0, =0xE000ED88
 		; Read CPACR
-		LDR	R1, [R0]
+		LDR R1, [R0]
 		; Set bits 20-23 to enable CP10 and CP11 coprocessors
-		ORR	R1, R1, #(0xF << 20)
+		ORR R1, R1, #(0xF << 20)
 		; Write back the modified value to the CPACR
-		STR	R1, [R0]
+		STR R1, [R0]
 		; wait for store to complete
 		DSB
 		;reset pipeline now the FPU is enabled
 		ISB
-        
-		;LDR     R0, =SystemInit
-        ;BLX     R0
-        ;LDR     R0, =__main
-
+		   
 		IMPORT Kalmanfilter_asm
-
+		
 		LDR R0, =Kalmanfilter_asm
-		BLX R0
-
+		BX R0
+		
+		;IMPORT  __main
+        ;LDR     R0, =__main
+		;BX R0
+		
 		ENDP
 
 ; Dummy Exception Handlers (infinite loops which can be modified)
