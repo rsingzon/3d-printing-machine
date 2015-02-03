@@ -2,9 +2,9 @@
 #include <stdlib.h>
 #include "kstate.h"
 
-void update(struct kalman_state* kstate, float measurement, float* destination);
+void update(kalman_state* kstate, float measurement, float* destination);
 
-int Kalmanfilter_C(float* InputArray, float* OutputArray, struct kalman_state* kstate, int Length)
+int Kalmanfilter_C(float* InputArray, float* OutputArray, kalman_state* kstate, int Length)
 {
 	int i;
 	
