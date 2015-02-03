@@ -1,50 +1,68 @@
 	AREA test, CODE, READONLY
-	EXPORT kalman
+	EXPORT Kalmanfilter_asm
 
-kalman
-	;Register descriptions
-	;r1: test vector memory pointer
-	;r2: Pointer to memory structure
-	;r3: Lowest index pointer for memory structure
-	;r4: Bottom of memory structure for comparison
-	;r5: Set Depth value (int)
-	;r7: Remaining data counter
-	;s0: First value from memory
-	;s16: Depth inverse (float)
-	;s17: Depth (float)
+Kalmanfilter_asm
+	; Register descriptions
+	; R1: Pointer to test data
+	; R2: Pointer to Kalman struct
+	;		q = R2
+	;		r = R2 + 4
+	;		x = R2 + 8
+	; 		p = R2 + 12
+	; 		k = R2 + 16
+	
+	
 
 startAddress EQU 0x20000000				; Start address of Kalman struct.  Address corresponds to the beginning of SRAM
 increment EQU 4							; Amount to increment pointers by
 structHeight EQU 20				        ; Note: this value is dependent on the depth									
-                                        
-	LDR r1, =test_vector 				; Pointer to the test data
+      
+	LDR R1, =test_vector 				; Pointer to measurements
+	MOV R2, #startAddress				; Load the address of the Kalman struct
 	
-	MOV r2, #startAddress				; Load the address of the Kalman struct
+	; Initialize 'q' and 'r' to something to prevent getting divide by zero
+	VMOV.F32 S0, #0.5
+	VSTR.F32 S0, [R2]  					; Store 0.5 into q
+	VSTR.F32 S0, [R2, #4]				; Store 0.5 into r
 	
-	SUB r3, r2, #increment				;Determine next data value pointer
-	STR r3, [r2]						;Store next data pointer
+kalman_update
 	
-	MOV r4, #startAddress				;Used for comparison purposes
-	
-	
-	
-	VLDR.F32 s0, [r1]					;Load first value from memory
-	ADD r1, r1, #increment				;Increment memory
-	
-	VSTR.F32 s0, [r3]					;Store first in struct
 
-	LDR r1, =int_vector
-	MOV r7, #0x25
-	STR r7, [r1]
+	; self.p = self.p + self.q
+	VLDR.F32 S0, [R2, #12]				; Load 'p' from memory
+	VLDR.F32 S1, [R2]					; Load 'q' from memory
+	VADD.F32 S1, S0, S1					; S1 = self.p + self.q
+	VSTR.F32 S1, [R2, #12]				; Store 'p' into memory
+	
+	; self.k = self.p / (self.p + self.r)
+	VLDR.F32 S1, [R2, #4]				; Load value 'r' from memory
+	VADD.F32 S1, S0, S1					; (self.p + self.r)
+	VDIV.F32 S1, S0, S1					; self.p / (self.p + self.r)
+	VSTR.F32 S1, [R2, #16]				; Store 'k' into memory
+	
+	; self.x = self.x + self.k * (measurement - self.x)
+	VLDR.F32 S2, [R2, #8]				; Load 'x' from memory
+	VLDR.F32 S3, [R1]					; Load measurement from memory
+	VSUB.F32 S4, S3, S2					; (measurement - self.x)
+	VMUL.F32 S4, S1, S4					; self.k * (measurement - self.x)
+	VADD.F32 S2, S2, S4					; self.x + self.k * (measurement - self.x)
+	VSTR.F32 S2, [R2, #8]				; Store 'x' into memory
+	
+	; self.p = (1 - self.k) * self.p
+	VLDR.F32 S0, [R2, #12]				; Load 'p' from memory
+	VMOV.F32 S2, #1						; Load 1 into S2
+	VSUB.F32 S2, S2, S1					; (1 - self.k)
+	VMUL.F32 S0, S2, S0					; (1 - self.k) * self.p
+	VSTR.F32 S0, [R2, #12]				; Store 'p' into memory
+	
+	ADD R1, R1, #increment				; Increment the data pointer
+	
+
+
 
 
 	LTORG
-	BX LR								;Return from error_state
-	
-	align 4
-int_vector
-	DCD 1, 2, 3, 4
-	
+	BX LR								; Return to startup 	
 	
 	align 4
 test_vector
