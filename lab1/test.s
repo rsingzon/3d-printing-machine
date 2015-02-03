@@ -63,7 +63,7 @@ kalman_update
 	VSTR.F32 S0, [R2, #12]				; Store 'p' into memory
 	
 	ADD R1, R1, #increment				; Increment the data pointer
-	ADD R1, R1, #increment				; Increment the filtered array pointer
+	ADD R3, R3, #increment				; Increment the filtered array pointer
 	
 	CMP R7, R1							; Check if there are more data points left
 	BGE kalman_update					; Loop if there are more measurements
