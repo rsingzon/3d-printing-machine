@@ -15,6 +15,7 @@ void update(kalman_state* kstate, float measurement, float* destination);
 int Kalmanfilter_C(float* InputArray, float* OutputArray, kalman_state* kstate, int Length);
 int getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *difference, uint32_t arraySize);
 void GetConvolution(float* inputArray, float* filteredArray, int Length, float* convolution);
+int getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length);
 
 
 int main()
@@ -45,6 +46,12 @@ int main()
 	// Convolution in C
 	float *convolution = (float*) malloc(sizeof(float) * arraySize);
   GetConvolution(input, output, arraySize, convolution);
+	
+	// Convolution using CMSIS-DSP
+	int maxBlockSize = 128;
+	float32_t convolution_CMSIS[maxBlockSize * 2];
+	getConvolutionCMSIS(input, output, convolution, arraySize);
+	
 	
 	free(convolution);
 	free(difference);
