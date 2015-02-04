@@ -24,11 +24,9 @@ int getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolut
 {
 	
 	int maxBlockSize = 128;
-	int snr_threshold = 90;
 	int convolutionLength = length * 2 - 1;
 	float32_t Ak[maxBlockSize];
 	float32_t Bk[maxBlockSize];
-	float32_t snr;
 	arm_status status;
 	
 	/* CFFT Structure instance */

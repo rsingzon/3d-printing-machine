@@ -17,16 +17,20 @@ int getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *diffe
 void GetConvolution(float* inputArray, float* filteredArray, int Length, float* convolution);
 int getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length);
 
+extern int Kalmanfilter_asm(float *inputArray, float *outputArray, float *kalmanStruct, int arrayLength);
+
 
 int main()
 {
 	float q = 0.1;
 	float r = 0.1;
-		
+
+
+	
 	kalman_state kstate = {q, r, 0.0, 0.0, 0.0};
 	
 	float input[] = {1.5, 3.2, 2.5, 3.4, 5.3};
-	uint16_t arraySize = sizeof(input) / sizeof(float);
+	uint16_t arraySize = sizeof(input) / sizeof(float);	
 	//float output[] = {0.0, 0.0, 0.0, 0.0, 0.0};
 	float *output = (float*) malloc(sizeof(float) * arraySize);
 	
