@@ -17,12 +17,11 @@ startAddress EQU 0x20000000				; Start address of Kalman struct.  Address corres
 
 ;;;Temporarily hard code the number of data points in the test vector
 arrayLength	EQU 5*4							
-filteredArray EQU 0x20000014			; Start address for the filtered array
 increment EQU 4							; Amount to increment pointers by
       
 	LDR R1, =test_vector 				; Pointer to measurements
 	MOV R2, #startAddress				; Load the address of the Kalman struct
-	MOV R3, #filteredArray				; Load the address of the filtered array
+	ADD R3, R2, #arrayLength			; Load the address of the filtered array
 	ADD R7, R1, #arrayLength			; Add test vector length to test vector pointer
 	
 	SUB R13, R13, #4					; Decrement stack pointer
