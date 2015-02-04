@@ -5,6 +5,14 @@ Kalmanfilter_asm
 	; Register descriptions
 	; R1: Pointer to test data
 	; R2: Pointer to Kalman struct
+	; R3: Pointer to filtered data array
+	
+	; R7: Pointer to the end of the test data array
+	
+	; S0: 
+	; S1
+	
+	; Struct value addresses
 	;		q = R2
 	;		r = R2 + 4
 	;		x = R2 + 8
@@ -13,14 +21,14 @@ Kalmanfilter_asm
 	
 
 
-startAddress EQU 0x20000000				; Start address of Kalman struct.  Address corresponds to the beginning of SRAM
+structAddress EQU 0x20000000				; Start address of Kalman struct.  Address corresponds to the beginning of SRAM
 
 ;;;Temporarily hard code the number of data points in the test vector
 arrayLength	EQU 5*4							
 increment EQU 4							; Amount to increment pointers by
       
 	LDR R1, =test_vector 				; Pointer to measurements
-	MOV R2, #startAddress				; Load the address of the Kalman struct
+	MOV R2, #structAddress				; Load the address of the Kalman struct
 	ADD R3, R2, #arrayLength			; Load the address of the filtered array
 	ADD R7, R1, #arrayLength			; Add test vector length to test vector pointer
 	
@@ -28,9 +36,11 @@ increment EQU 4							; Amount to increment pointers by
 	STR	R7, [R13]						; Store the array length into the stack
 	
 	; Initialize 'q' and 'r' to something to prevent getting divide by zero
-	VMOV.F32 S0, #0.5
-	VSTR.F32 S0, [R2]  					; Store 0.5 into q
-	VSTR.F32 S0, [R2, #4]				; Store 0.5 into r
+	VMOV.F32 S0, #10.0
+	VMOV.F32 S1, #1.0
+	VDIV.F32 S0, S1, S0
+	VSTR.F32 S0, [R2]  					; Store 0.1 into q
+	VSTR.F32 S0, [R2, #4]				; Store 0.1 into r
 	
 kalman_update
 	
@@ -73,6 +83,7 @@ kalman_update
 	BGE kalman_update					; Loop if there are more measurements
 
 	LTORG
+	ADD R10, R10, #1					; Dummy instruction for finding runtime
 	BX LR								; Return to startup 	
 	
 	align 4
