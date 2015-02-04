@@ -43,7 +43,6 @@ int main()
 	getDifferenceCMSIS(input, output, difference, arraySize);
 	
 	// Convolution in C
-	int i;
 	float *convolution = (float*) malloc(sizeof(float) * arraySize);
   GetConvolution(input, output, arraySize, convolution);
 	

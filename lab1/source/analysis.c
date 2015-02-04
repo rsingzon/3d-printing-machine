@@ -60,6 +60,7 @@ float GetCorrelation(float* inputArray, float* filteredArray, int Length)
 
 void GetConvolution(float* inputArray, float* filteredArray, int Length, float* convolution)
 {
+	int i;
 	for (i = 0; i < 2*Length-1; i++) {
     size_t kmin, kmax, k;
 
