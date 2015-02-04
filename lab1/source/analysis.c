@@ -58,20 +58,18 @@ float GetCorrelation(float* inputArray, float* filteredArray, int Length)
 	return (numerator / denominator);
 }
 
-float* GetConvolution(float* inputArray, float* filteredArray, int Length)
+void GetConvolution(float* inputArray, float* filteredArray, int Length, float* convolution)
 {
-	int j=0;
-	
-	float *convolution = (float*)malloc((2*Length)-1);
-	
-	for (i=0; i<Length; i++)
-	{
-		convolution[i]=0.0;
-		for (j=0; j<=i; j++)
-		{
-			convolution[i] += inputArray[i-j]*filteredArray[i];
-		}
-	}
-	
-	return convolution;
+	for (i = 0; i < 2*Length-1; i++) {
+    size_t kmin, kmax, k;
+
+    convolution[i] = 0;
+
+    kmin = (i >= Length - 1) ? i - (Length - 1) : 0;
+    kmax = (i < Length - 1) ? i : Length - 1;
+
+    for (k = kmin; k <= kmax; k++) {
+      convolution[i] += inputArray[k] * filteredArray[i - k];
+    }
+  }
 }
