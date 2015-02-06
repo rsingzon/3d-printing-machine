@@ -40,22 +40,20 @@ void getAvgStdDev(float* differences, float* average, float* std, int Length)
 	memcpy(std, &stdev, sizeof(float));
 }
 
-float getCorrelation(float* inputArray, float* filteredArray, int Length)
+void getCorrelation(float* inputArray, float* filteredArray, int Length, float* correlation)
 {
-	float numerator, denominator;
-	
-	numerator=0.0;
-	denominator=0.0;
-	
-	/* Compute numerator = inputArray*filteredArray and denominator = sum(inputArray^2) */
-	for (i=0; i<Length; i++)
+	int i, j, k;
+	for(i=0; i<Length; i++)
 	{
-		numerator += inputArray[i]*filteredArray[i];
-		denominator += inputArray[i]*inputArray[i];
+		correlation[i]=0;
+		
+		for(j=0; j<Length; j++)
+		{
+			k=Length - (i-j) -1;
+			if((k==0)||((k>0)&&(k<Length)))
+				correlation[i] = correlation[i] + inputArray[j]*filteredArray[k];
+		}
 	}
-	
-	/* Return the correlation */
-	return (numerator / denominator);
 }
 
 void getConvolution(float* inputArray, float* filteredArray, int Length, float* convolution)

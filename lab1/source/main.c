@@ -20,17 +20,20 @@ extern int Kalmanfilter_asm(float *inputArray, float *filteredArray, kalman_stat
 
 void getDifferences(float* input1, float* input2, float* output, int Length);
 void getAvgStdDev(float* differences, float* average, float* std, int Length);
-float getCorrelation(float* inputArray, float* filteredArray, int Length);
+float getCorrelation(float* inputArray, float* filteredArray, int Length, float* correlation);
 void getConvolution(float* inputArray, float* filteredArray, int Length, float* convolution);
 
 int getStatistics(float *inputArray, float *filteredArray, int arraySize);
 
+uint16_t arraySize = sizeof(testVector) / sizeof(float);	
+float filteredArray[1257];
 
 int main()
 {
-	float inputArray[] = {1.5, 3.2, 2.5, 3.4, 5.3};
-	uint16_t arraySize = sizeof(inputArray) / sizeof(float);	
-	float filteredArray[arraySize];
+	//float inputArray[] = {1.5, 3.2, 2.5, 3.4, 5.3};
+	
+	int length = arraySize;
+	
 	
 	// Initialize the Kalman state
 	float q = 0.1;
@@ -39,10 +42,13 @@ int main()
 	kalman_state kstate = {q, r, 0.0, 0.0, 0.0};		
 	
 	// Call assembly implementation
-	Kalmanfilter_asm(inputArray, filteredArray, &kstate, arraySize);
+	Kalmanfilter_asm(testVector, filteredArray, &kstate, arraySize);
 	
 	// Call C implementation 
-	Kalmanfilter_C(inputArray, filteredArray, &kstate, arraySize);
+	Kalmanfilter_C(testVector, filteredArray, &kstate, length);
+	
+	// DSP Functions
+	getStatistics(testVector, filteredArray, length);
 	return 0;
 }
 
@@ -61,7 +67,7 @@ int getStatistics(float *inputArray, float *filteredArray, int arraySize)
 	// C Implementations
 	getDifferences(inputArray, filteredArray, difference, arraySize);
 	getAvgStdDev(difference, average, stdDev, arraySize);
-	getCorrelation(inputArray, filteredArray, arraySize);
+	getCorrelation(inputArray, filteredArray, arraySize, correlation);
   getConvolution(inputArray, filteredArray, arraySize, convolution);
 	
 	// Implementation using the CMSIS-DSP library
