@@ -14,9 +14,9 @@
 
 // Function prototypes
 void update(kalman_state* kstate, float measurement, float* destination);
-int Kalmanfilter_C(float* InputArray, float* OutputArray, kalman_state* kstate, int Length);
+int Kalmanfilter_C(float* InputArray, float* OutputArray, kalman_state *kstate, int Length);
 
-extern int Kalmanfilter_asm(float *inputArray, float *filteredArray, kalman_state kstate, int arraySize);
+extern int Kalmanfilter_asm(float *inputArray, float *filteredArray, kalman_state *kstate, int arraySize);
 
 void getDifferences(float* input1, float* input2, float* output, int Length);
 void getAvgStdDev(float* differences, float* average, float* std, int Length);
@@ -28,7 +28,8 @@ int getStatistics(float *inputArray, float *filteredArray, int arraySize);
 
 int main()
 {
-	uint16_t arraySize = sizeof(testVector) / sizeof(float);	
+	float inputArray[] = {1.5, 3.2, 2.5, 3.4, 5.3};
+	uint16_t arraySize = sizeof(inputArray) / sizeof(float);	
 	float filteredArray[arraySize];
 	
 	// Initialize the Kalman state
@@ -38,10 +39,10 @@ int main()
 	kalman_state kstate = {q, r, 0.0, 0.0, 0.0};		
 	
 	// Call assembly implementation
-	Kalmanfilter_asm(testVector, filteredArray, kstate, arraySize);
+	Kalmanfilter_asm(inputArray, filteredArray, &kstate, arraySize);
 	
 	// Call C implementation 
-	Kalmanfilter_C(testVector, filteredArray, &kstate, arraySize);
+	Kalmanfilter_C(inputArray, filteredArray, &kstate, arraySize);
 	return 0;
 }
 
