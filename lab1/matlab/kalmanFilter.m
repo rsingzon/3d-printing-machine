@@ -19,3 +19,5 @@ end
 
 %plot(testVector)
 %plot(filteredVector)
+
+filteredVector
