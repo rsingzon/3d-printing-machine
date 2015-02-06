@@ -5,7 +5,7 @@
 
 int i;
 
-void ComputeDifferences(float* input1, float* input2, float* output, int Length)
+void getDifferences(float* input1, float* input2, float* output, int Length)
 {	
 	for(i=0; i<Length; i++)
 	{
@@ -14,7 +14,7 @@ void ComputeDifferences(float* input1, float* input2, float* output, int Length)
 	
 }
 
-void ComputeAvgStDev(float* differences, float* average, float* std, int Length)
+void getAvgStdDev(float* differences, float* average, float* std, int Length)
 {
 	float avg, stdev;
 	
@@ -40,7 +40,7 @@ void ComputeAvgStDev(float* differences, float* average, float* std, int Length)
 	memcpy(std, &stdev, sizeof(float));
 }
 
-float GetCorrelation(float* inputArray, float* filteredArray, int Length)
+float getCorrelation(float* inputArray, float* filteredArray, int Length)
 {
 	float numerator, denominator;
 	
@@ -58,7 +58,7 @@ float GetCorrelation(float* inputArray, float* filteredArray, int Length)
 	return (numerator / denominator);
 }
 
-void GetConvolution(float* inputArray, float* filteredArray, int Length, float* convolution)
+void getConvolution(float* inputArray, float* filteredArray, int Length, float* convolution)
 {
 	int i;
 	for (i = 0; i < 2*Length-1; i++) {

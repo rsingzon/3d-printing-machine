@@ -13,7 +13,6 @@
     <tExt>*.txt; *.h; *.inc</tExt>
     <pExt>*.plm</pExt>
     <CppX>*.cpp</CppX>
-    <nMigrate>0</nMigrate>
   </Extensions>
 
   <DaveTm>
@@ -32,7 +31,6 @@
         <BeepAtEnd>1</BeepAtEnd>
         <RunSim>0</RunSim>
         <RunTarget>1</RunTarget>
-        <RunAbUc>0</RunAbUc>
       </OPTTT>
       <OPTHX>
         <HexSelection>1</HexSelection>
@@ -77,42 +75,42 @@
         <tvExpOptDlg>0</tvExpOptDlg>
         <IsCurrentTarget>1</IsCurrentTarget>
       </OPTFL>
-      <CpuCode>18</CpuCode>
+      <CpuCode>255</CpuCode>
       <Books>
         <Book>
           <Number>0</Number>
           <Title>Getting Started (STM32F4-Discovery)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\DM00037368.pdf</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\DM00037368.pdf</Path>
         </Book>
         <Book>
           <Number>1</Number>
           <Title>User Manual (STM32F4-Discovery)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\DM00039084.pdf</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\DM00039084.pdf</Path>
         </Book>
         <Book>
           <Number>2</Number>
           <Title>User Manual (MCBSTM32F400)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\mcbstm32f200.chm</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\mcbstm32f200.chm</Path>
         </Book>
         <Book>
           <Number>3</Number>
           <Title>Schematics (MCBSTM32F400)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\mcbstm32f400-schematics.pdf</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\mcbstm32f400-schematics.pdf</Path>
         </Book>
         <Book>
           <Number>4</Number>
           <Title>Bill of Materials (STM32F4-Discovery)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\stm32f4discovery_bom.zip</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\stm32f4discovery_bom.zip</Path>
         </Book>
         <Book>
           <Number>5</Number>
           <Title>Gerber Files (STM32F4-Discovery)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\stm32f4discovery_gerber.zip</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\stm32f4discovery_gerber.zip</Path>
         </Book>
         <Book>
           <Number>6</Number>
           <Title>Schematics (STM32F4-Discovery)</Title>
-          <Path>C:\Keil\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\stm32f4discovery_sch.zip</Path>
+          <Path>C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Documents\stm32f4discovery_sch.zip</Path>
         </Book>
         <Book>
           <Number>7</Number>
@@ -125,6 +123,16 @@
           <Path>http://www.st.com/web/catalog/tools/FM116/SC959/SS1532/LN1199/PF252419</Path>
         </Book>
       </Books>
+      <DllOpt>
+        <SimDllName>SARMCM3.DLL</SimDllName>
+        <SimDllArguments>-MPU -REMAP</SimDllArguments>
+        <SimDlgDllName>DCM.DLL</SimDlgDllName>
+        <SimDlgDllArguments>-pCM4</SimDlgDllArguments>
+        <TargetDllName>SARMCM3.DLL</TargetDllName>
+        <TargetDllArguments>-MPU</TargetDllArguments>
+        <TargetDlgDllName>TCM.DLL</TargetDlgDllName>
+        <TargetDlgDllArguments>-pCM4</TargetDlgDllArguments>
+      </DllOpt>
       <DebugOpt>
         <uSim>1</uSim>
         <uTrg>0</uTrg>
@@ -186,23 +194,23 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>41</LineNumber>
+          <LineNumber>51</LineNumber>
           <EnabledFlag>1</EnabledFlag>
-          <Address>134218728</Address>
+          <Address>134218254</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>.\test.s</Filename>
+          <Filename>P:\dev\ecse426\lab1\source\main.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
         <Bp>
           <Number>1</Number>
           <Type>0</Type>
-          <LineNumber>201</LineNumber>
+          <LineNumber>55</LineNumber>
           <EnabledFlag>1</EnabledFlag>
           <Address>0</Address>
           <ByteObject>0</ByteObject>
@@ -211,7 +219,7 @@
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>0</BreakIfRCount>
-          <Filename>RTE\Device\STM32F407VG\startup_stm32f40_41xxx.s</Filename>
+          <Filename>P:\dev\ecse426\lab1\source\main.c</Filename>
           <ExecCommand></ExecCommand>
           <Expression></Expression>
         </Bp>
@@ -220,8 +228,7 @@
         <Mm>
           <WinNumber>1</WinNumber>
           <SubType>6</SubType>
-          <ItemText>0x20000000</ItemText>
-          <AccSizeX>0</AccSizeX>
+          <ItemText>0x20000040</ItemText>
         </Mm>
       </MemoryWindow1>
       <Tracepoint>
@@ -270,7 +277,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>4197436</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>5</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\source\fputc_debug.c</PathWithFileName>
       <FilenameWithoutPath>fputc_debug.c</FilenameWithoutPath>
@@ -283,7 +293,10 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>102</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>4</TopLine>
+      <CurrentLine>20</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\source\main.c</PathWithFileName>
       <FilenameWithoutPath>main.c</FilenameWithoutPath>
@@ -296,7 +309,10 @@
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>4197436</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>5</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\source\stm32f4xx.h</PathWithFileName>
       <FilenameWithoutPath>stm32f4xx.h</FilenameWithoutPath>
@@ -309,7 +325,10 @@
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>4197436</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>5</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\source\stm32f4xx_conf.h</PathWithFileName>
       <FilenameWithoutPath>stm32f4xx_conf.h</FilenameWithoutPath>
@@ -322,7 +341,10 @@
       <FileType>2</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>18</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>1</TopLine>
+      <CurrentLine>16</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\test.s</PathWithFileName>
       <FilenameWithoutPath>test.s</FilenameWithoutPath>
@@ -335,7 +357,10 @@
       <FileType>5</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>4197436</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>5</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\source\kstate.h</PathWithFileName>
       <FilenameWithoutPath>kstate.h</FilenameWithoutPath>
@@ -348,10 +373,45 @@
       <FileType>1</FileType>
       <tvExp>0</tvExp>
       <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
       <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>1</TopLine>
+      <CurrentLine>18</CurrentLine>
       <bDave2>0</bDave2>
       <PathWithFileName>.\source\Kalmanfilter_C.c</PathWithFileName>
       <FilenameWithoutPath>Kalmanfilter_C.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>1</GroupNumber>
+      <FileNumber>8</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>23</TopLine>
+      <CurrentLine>62</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\source\analysis.c</PathWithFileName>
+      <FilenameWithoutPath>analysis.c</FilenameWithoutPath>
+      <RteFlg>0</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>1</GroupNumber>
+      <FileNumber>9</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>14</TopLine>
+      <CurrentLine>43</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>.\source\cmsis-dsp.c</PathWithFileName>
+      <FilenameWithoutPath>cmsis-dsp.c</FilenameWithoutPath>
       <RteFlg>0</RteFlg>
       <bShared>0</bShared>
     </File>
@@ -363,6 +423,22 @@
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>1</RteFlg>
+    <File>
+      <GroupNumber>2</GroupNumber>
+      <FileNumber>10</FileNumber>
+      <FileType>4</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Lib\ARM\arm_cortexM4lf_math.lib</PathWithFileName>
+      <FilenameWithoutPath>arm_cortexM4lf_math.lib</FilenameWithoutPath>
+      <RteFlg>1</RteFlg>
+      <bShared>0</bShared>
+    </File>
   </Group>
 
   <Group>
@@ -371,6 +447,54 @@
     <tvExpOptDlg>0</tvExpOptDlg>
     <cbSel>0</cbSel>
     <RteFlg>1</RteFlg>
+    <File>
+      <GroupNumber>3</GroupNumber>
+      <FileNumber>11</FileNumber>
+      <FileType>5</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>RTE\Device\STM32F407VG\RTE_Device.h</PathWithFileName>
+      <FilenameWithoutPath>RTE_Device.h</FilenameWithoutPath>
+      <RteFlg>1</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>3</GroupNumber>
+      <FileNumber>12</FileNumber>
+      <FileType>2</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>65</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>178</TopLine>
+      <CurrentLine>341</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>RTE\Device\STM32F407VG\startup_stm32f40_41xxx.s</PathWithFileName>
+      <FilenameWithoutPath>startup_stm32f40_41xxx.s</FilenameWithoutPath>
+      <RteFlg>1</RteFlg>
+      <bShared>0</bShared>
+    </File>
+    <File>
+      <GroupNumber>3</GroupNumber>
+      <FileNumber>13</FileNumber>
+      <FileType>1</FileType>
+      <tvExp>0</tvExp>
+      <Focus>0</Focus>
+      <ColumnNumber>0</ColumnNumber>
+      <tvExpOptDlg>0</tvExpOptDlg>
+      <TopLine>0</TopLine>
+      <CurrentLine>0</CurrentLine>
+      <bDave2>0</bDave2>
+      <PathWithFileName>RTE\Device\STM32F407VG\system_stm32f4xx.c</PathWithFileName>
+      <FilenameWithoutPath>system_stm32f4xx.c</FilenameWithoutPath>
+      <RteFlg>1</RteFlg>
+      <bShared>0</bShared>
+    </File>
   </Group>
 
 </ProjectOpt>

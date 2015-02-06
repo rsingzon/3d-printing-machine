@@ -10,17 +10,28 @@
 
 //typedef signed long int32_t;
 
-int getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *difference, uint32_t arraySize)
+// Get the difference between the input array and the filtered array
+void getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *difference, uint32_t arraySize)
 {
-	
-	arm_sub_f32(inputArray, filteredArray, difference, arraySize);
-	
-	return 0;
-	
+	arm_sub_f32(inputArray, filteredArray, difference, arraySize);	
 }
 
+void getAvgStDevCMSIS(float *differences, float *average, float *stdDev, int length)
+{
+	// Get the average of the differences
+	arm_mean_f32 (differences, length, average);
+	
+	// Get the standard deviation of of the differences
+	arm_std_f32 (differences, length, stdDev);
+}
 
-int getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length)
+// Get the correlation between the two arrays
+void getCorrelationCMSIS(float *inputArray, float *filteredArray, float* correlation, int length)
+{
+	arm_correlate_f32(inputArray, length, filteredArray, length, correlation);
+}
+
+void getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length)
 {
 	
 	int maxBlockSize = 128;
@@ -29,16 +40,12 @@ int getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolut
 	float32_t Bk[maxBlockSize];
 	arm_status status;
 	
-	/* CFFT Structure instance */
   arm_cfft_radix4_instance_f32 cfft_instance;
-  /* CFFT Structure instance pointer */
-  arm_cfft_radix4_instance_f32 *cfft_instance_ptr =
-      (arm_cfft_radix4_instance_f32*) &cfft_instance;
+  arm_cfft_radix4_instance_f32 *cfft_instance_ptr = (arm_cfft_radix4_instance_f32*) &cfft_instance;
   
-	/* output length of convolution */
   convolutionLength = length*2 - 1;
   
-	/* Initialise the fft input buffers with all zeros */
+	// Fill input with zeros
   arm_fill_f32(0.0,  Ak, maxBlockSize);
   arm_fill_f32(0.0,  Bk, maxBlockSize);
   

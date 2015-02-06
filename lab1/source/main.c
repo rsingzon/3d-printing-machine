@@ -1,6 +1,7 @@
 /**
  * ECSE 426 - Microprocessor Systems
- * 
+ * Singzon, Ryan			
+ * Tichelman, Jeffrey
  */
 
 #include <stdio.h>
@@ -11,58 +12,81 @@
 
 //typedef signed long int32_t;
 
+// Function prototypes
 void update(kalman_state* kstate, float measurement, float* destination);
 int Kalmanfilter_C(float* InputArray, float* OutputArray, kalman_state* kstate, int Length);
-int getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *difference, uint32_t arraySize);
-void GetConvolution(float* inputArray, float* filteredArray, int Length, float* convolution);
-int getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length);
 
 extern int Kalmanfilter_asm(float *inputArray, float *outputArray, float *kalmanStruct, int arrayLength);
+
+void getDifferences(float* input1, float* input2, float* output, int Length);
+void getAvgStdDev(float* differences, float* average, float* std, int Length);
+float getCorrelation(float* inputArray, float* filteredArray, int Length);
+void getConvolution(float* inputArray, float* filteredArray, int Length, float* convolution);
+
+void getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *difference, uint32_t arraySize);
+void getAvgStDevCMSIS(float *differences, float *average, float *stdDev, int length);
+void getCorrelationCMSIS(float *inputArray, float *filteredArray, float* correlation, int length);
+void getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length);
+
+int getStatistics(float *inputArray, float *filteredArray, int arraySize);
 
 
 int main()
 {
+	// Initialize the Kalman state
 	float q = 0.1;
 	float r = 0.1;
 
-
-	
 	kalman_state kstate = {q, r, 0.0, 0.0, 0.0};
 	
-	float input[] = {1.5, 3.2, 2.5, 3.4, 5.3};
-	uint16_t arraySize = sizeof(input) / sizeof(float);	
-	//float output[] = {0.0, 0.0, 0.0, 0.0, 0.0};
-	float *output = (float*) malloc(sizeof(float) * arraySize);
+	
+	float inputArray[] = {1.5, 3.2, 2.5, 3.4, 5.3};
+	uint16_t arraySize = sizeof(inputArray) / sizeof(float);	
+	float filteredArray[arraySize];
+	
 	
 	// Call assembly implementation
 	
 	// Call C implementation 
-	Kalmanfilter_C(input, output, &kstate, 5);
-	
-	/**
-	 * Part III - CMSIS-DSP
-	 */
-	
-	// Sutraction of the original data stream and the data obtain by the Kalman Filter
-	float *difference = (float*) malloc(sizeof(float) * arraySize);
-	getDifferenceCMSIS(input, output, difference, arraySize);
-	
-	// Convolution in C
-	float *convolution = (float*) malloc(sizeof(float) * arraySize);
-  GetConvolution(input, output, arraySize, convolution);
-	
-	// Convolution using CMSIS-DSP
-	int maxBlockSize = 128;
-	float32_t convolution_CMSIS[maxBlockSize * 2];
-	getConvolutionCMSIS(input, output, convolution, arraySize);
+	Kalmanfilter_C(inputArray, filteredArray, &kstate, arraySize);
 	
 	
-	free(convolution);
-	free(difference);
-	free(output);
+	
+	
+
 	return 0;
 }
 
+
+	/**
+	 * Part III - CMSIS-DSP
+	 */
+int getStatistics(float *inputArray, float *filteredArray, int arraySize)
+{
+	float difference[arraySize];
+	float average[arraySize];
+	float stdDev[arraySize];
+	float correlation[arraySize];
+	float convolution[arraySize];
+	
+	// C Implementations
+	getDifferences(inputArray, filteredArray, difference, arraySize);
+	getAvgStdDev(difference, average, stdDev, arraySize);
+	getCorrelation(inputArray, filteredArray, arraySize);
+  getConvolution(inputArray, filteredArray, arraySize, convolution);
+	
+	// Implementation using the CMSIS-DSP library
+	float differenceCMSIS[arraySize];
+	float averageCMSIS[arraySize];
+	float stdDevCMSIS[arraySize];
+	float correlationCMSIS[arraySize];
+	float convolutionCMSIS[arraySize];
+	
+	getDifferenceCMSIS(inputArray, filteredArray, difference, arraySize);
+	getAvgStDevCMSIS(differenceCMSIS, averageCMSIS, stdDevCMSIS, arraySize);
+	getCorrelationCMSIS(inputArray, filteredArray, correlation, arraySize);
+	getConvolutionCMSIS(inputArray, filteredArray, convolution, arraySize);
+}
 
 
 

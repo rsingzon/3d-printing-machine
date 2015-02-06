@@ -192,14 +192,14 @@ Reset_Handler    PROC
 		;reset pipeline now the FPU is enabled
 		ISB
 		   
-		IMPORT Kalmanfilter_asm
+		;IMPORT Kalmanfilter_asm
 		
-		LDR R0, =Kalmanfilter_asm
-		BX R0
-		
-		;IMPORT  __main
-        ;LDR     R0, =__main
+		;LDR R0, =Kalmanfilter_asm
 		;BX R0
+		
+		IMPORT  __main
+        LDR     R0, =__main
+		BX R0
 		
 		ENDP
 
