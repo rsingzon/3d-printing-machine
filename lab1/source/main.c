@@ -1,7 +1,7 @@
 /**
  * ECSE 426 - Microprocessor Systems
- * Singzon, Ryan			
- * Tichelman, Jeffrey
+ * Singzon, Ryan				260397455
+ * Tichelman, Jeffrey		260446802
  */
 
 #include <stdio.h>
@@ -28,27 +28,37 @@ int getStatistics(float *inputArray, float *filteredArray, int arraySize);
 uint16_t arraySize = sizeof(testVector) / sizeof(float);	
 float filteredArray[1257];
 
+float difference[1257];
+float average[1257];
+float stdDev[1257];
+float correlation[1257];
+float convolution[2513];
+	
+float differenceCMSIS[1257];
+float averageCMSIS[1257];
+float stdDevCMSIS[1257];
+float correlationCMSIS[1257];
+float convolutionCMSIS[2513];
+
 int main()
-{
-	//float inputArray[] = {1.5, 3.2, 2.5, 3.4, 5.3};
-	
-	int length = arraySize;
-	
-	
+{	
 	// Initialize the Kalman state
-	float q = 0.1;
-	float r = 0.1;
+	float q = 0.005;
+	float r = 5;
 
 	kalman_state kstate = {q, r, 0.0, 0.0, 0.0};		
 	
 	// Call assembly implementation
 	Kalmanfilter_asm(testVector, filteredArray, &kstate, arraySize);
-	
+	int i=0;
+	for (i=0;i<100;i++){
+		printf("%f\n",filteredArray[i]);
+	}
 	// Call C implementation 
-	Kalmanfilter_C(testVector, filteredArray, &kstate, length);
+	Kalmanfilter_C(testVector, filteredArray, &kstate, arraySize);
 	
 	// DSP Functions
-	getStatistics(testVector, filteredArray, length);
+	getStatistics(testVector, filteredArray, arraySize);
 	return 0;
 }
 
@@ -57,31 +67,20 @@ int main()
 	 * Part III - CMSIS-DSP
 	 */
 int getStatistics(float *inputArray, float *filteredArray, int arraySize)
-{
-	float difference[arraySize];
-	float average[arraySize];
-	float stdDev[arraySize];
-	float correlation[arraySize];
-	float convolution[arraySize];
-	
+{	
 	// C Implementations
 	getDifferences(inputArray, filteredArray, difference, arraySize);
 	getAvgStdDev(difference, average, stdDev, arraySize);
 	getCorrelation(inputArray, filteredArray, arraySize, correlation);
   getConvolution(inputArray, filteredArray, arraySize, convolution);
 	
-	// Implementation using the CMSIS-DSP library
-	float differenceCMSIS[arraySize];
-	float averageCMSIS[arraySize];
-	float stdDevCMSIS[arraySize];
-	float correlationCMSIS[arraySize];
-	float convolutionCMSIS[arraySize];
-	
+	// Implementation using the CMSIS-DSP library	
 	arm_sub_f32(inputArray, filteredArray, differenceCMSIS, arraySize);
 	arm_mean_f32(differenceCMSIS, arraySize, averageCMSIS);
 	arm_std_f32(differenceCMSIS, arraySize, stdDevCMSIS);
 	arm_correlate_f32(inputArray, arraySize, filteredArray, arraySize, correlationCMSIS);
 	arm_conv_f32(inputArray, arraySize, filteredArray, arraySize, convolutionCMSIS);
+	return 0;
 }
 
 

@@ -449,6 +449,11 @@
               <FileType>1</FileType>
               <FilePath>.\source\cmsis-dsp.c</FilePath>
             </File>
+            <File>
+              <FileName>array.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\source\array.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -1,3 +1,9 @@
+/**
+ * ECSE 426 - Microprocessor Systems
+ * Singzon, Ryan				260397455
+ * Tichelman, Jeffrey		260446802
+ */
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "kstate.h"
