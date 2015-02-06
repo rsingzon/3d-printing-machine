@@ -23,11 +23,6 @@ void getAvgStdDev(float* differences, float* average, float* std, int Length);
 float getCorrelation(float* inputArray, float* filteredArray, int Length);
 void getConvolution(float* inputArray, float* filteredArray, int Length, float* convolution);
 
-void getDifferenceCMSIS(float* inputArray, float* filteredArray, float32_t *difference, uint32_t arraySize);
-void getAvgStDevCMSIS(float *differences, float *average, float *stdDev, int length);
-void getCorrelationCMSIS(float *inputArray, float *filteredArray, float* correlation, int length);
-void getConvolutionCMSIS(float *inputArray, float *filteredArray, float *convolution, int length);
-
 int getStatistics(float *inputArray, float *filteredArray, int arraySize);
 
 
@@ -82,10 +77,11 @@ int getStatistics(float *inputArray, float *filteredArray, int arraySize)
 	float correlationCMSIS[arraySize];
 	float convolutionCMSIS[arraySize];
 	
-	getDifferenceCMSIS(inputArray, filteredArray, difference, arraySize);
-	getAvgStDevCMSIS(differenceCMSIS, averageCMSIS, stdDevCMSIS, arraySize);
-	getCorrelationCMSIS(inputArray, filteredArray, correlation, arraySize);
-	getConvolutionCMSIS(inputArray, filteredArray, convolution, arraySize);
+	arm_sub_f32(inputArray, filteredArray, differenceCMSIS, arraySize);
+	arm_mean_f32(differenceCMSIS, arraySize, averageCMSIS);
+	arm_std_f32(differenceCMSIS, arraySize, stdDevCMSIS);
+	arm_correlate_f32(inputArray, arraySize, filteredArray, arraySize, correlationCMSIS);
+	arm_conv_f32(inputArray, arraySize, filteredArray, arraySize, convolutionCMSIS);
 }
 
 
