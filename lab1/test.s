@@ -3,9 +3,11 @@
 
 Kalmanfilter_asm
 	; Register descriptions
-	; R1: Pointer to test data
-	; R2: Pointer to Kalman struct
-	; R3: Pointer to filtered data array
+	; R0: Pointer to test data
+	; R1: Pointer to filtered data array
+	; R2: Array length
+	; R3: Pointer to Kalman struct
+	
 	
 	; R7: Pointer to the end of the test data array
 	
@@ -18,12 +20,8 @@ Kalmanfilter_asm
 	;		x = R2 + 8
 	; 		p = R2 + 12
 	; 		k = R2 + 16
-	
 
-
-structAddress EQU 0x20000000				; Start address of Kalman struct.  Address corresponds to the beginning of SRAM
-
-;;;Temporarily hard code the number of data points in the test vector
+structAddress EQU 0x20000000			; Start address of Kalman struct.  Address corresponds to the beginning of SRAM
 arrayLength	EQU 5*4							
 increment EQU 4							; Amount to increment pointers by
       
