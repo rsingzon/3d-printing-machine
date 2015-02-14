@@ -425,11 +425,6 @@
               <FilePath>.\source\stm32f4xx_conf.h</FilePath>
             </File>
             <File>
-              <FileName>test.s</FileName>
-              <FileType>2</FileType>
-              <FilePath>.\test.s</FilePath>
-            </File>
-            <File>
               <FileName>kstate.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\source\kstate.h</FilePath>
@@ -453,6 +448,11 @@
               <FileName>array.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\source\array.h</FilePath>
+            </File>
+            <File>
+              <FileName>test.s</FileName>
+              <FileType>2</FileType>
+              <FilePath>.\source\test.s</FilePath>
             </File>
           </Files>
         </Group>
