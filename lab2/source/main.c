@@ -15,11 +15,13 @@
 
 #define AVG_SLOPE 2.5
 #define AVG_SLOPE_INVERSE 1/AVG_SLOPE
-#define SCALE 0.74
+#define SCALE 0.715
 
 float to_celsius(int v_sense);
 static volatile uint_fast16_t ticks;
 void delay_ms(int ms);
+int readADC();
+void fadeLEDs();
 
  int main(){
 	
@@ -30,42 +32,121 @@ void delay_ms(int ms);
 	// Reset the timer
 	ticks = 0;
 	
-	// Configure SysTick to use 1ms period
-	SysTick_Config(SystemCoreClock / 1000); 
+	// Configure SysTick to use 20ms period
+	SysTick_Config(1 * SystemCoreClock / 1000); 
 	
 	kalman_state kstate = {0.5, 0.5, 0.0, 0.0, 0.0};
+	float temp;
+	float filteredTemp;
+	float referenceTemp = readADC();
+	int currentLED = 'B';
+	GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
 	
 	while(1){
 		
-		GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on green
+		// Read temperature values
+		temp = to_celsius(readADC());
+		printf("%f\t%d\n",temp, ADC1->DR);
+		filteredTemp = kalman_update(&kstate, temp);		
 		
-		GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on orange
-		
-		GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on red
-	
-		GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+		/*
+		if (filteredTemp >= 50.0) {
+			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on green
+			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on green
+			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on green
+			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on green
+		}
+		else if (filteredTemp - referenceTemp > 2) {
+			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+			switch(currentLED){
+				case 'B':
+					GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on green
+					currentLED = 'G';
+					break;
+				case 'G':
+					GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on orange
+					currentLED = 'O';
+					break;
+				case 'O': 
+					GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on red
+					currentLED = 'R';
+					break;
+				case 'R': 
+					GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+					currentLED = 'B';
+					break;
+			}
+			referenceTemp = filteredTemp;
+		} 
+		else if (filteredTemp - referenceTemp < -2) {
+			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+			switch(currentLED){
+				case 'B':
+					GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on red
+					currentLED = 'R';
+					break;
+				case 'R': 
+					GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on orange
+					currentLED = 'O';
+					break;
+				case 'O': 
+					GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on green
+					currentLED = 'G';
+					break;
+				case 'G':
+					GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+					currentLED = 'B';
+					break;
+			}
+			referenceTemp = filteredTemp;
+		}
+		else{
+			
+		}
+		*/
+		fadeLEDs();
 		
 		delay_ms(20);
-		ticks = 0;		
-		// Turn off all LEDs
-		GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-		
-		// Read temperature values
-		ADC_SoftwareStartConv(ADC1); //Starting Conversion, waiting for it to finish, clearing the flag, reading the result
-		while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //Could be through interrupts (Later)
-		ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //EOC means End Of Conversion
-		ADC_GetConversionValue(ADC1); // Result available in ADC1->DR
-		
-		float temperature = to_celsius(ADC1->DR);
-		printf("%f\t%d\n",temperature, ADC1->DR);
-		
-		
-		kalman_update(&kstate, temperature);
-		
-		
+		ticks = 0;				
 	}
 	return 0;
 }
+
+/**
+* @brief Reads the temperature sensor 
+* @retval integer 
+*/
+int readADC() 
+{
+	ADC_SoftwareStartConv(ADC1); //Starting Conversion, waiting for it to finish, clearing the flag, reading the result
+	while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //Could be through interrupts (Later)
+	ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //EOC means End Of Conversion
+	ADC_GetConversionValue(ADC1); // Result available in ADC1->DR
+	return ADC1->DR;
+}
+
+void fadeLEDs()
+{
+	int period = 50;
+	int periods;	
+	
+	for (periods = 1; periods < period; periods++) {
+		
+		while (ticks < periods) {
+			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on blue
+			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on blue
+			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on blue
+			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+		}
+		ticks = 0;
+		while (ticks < period-periods){
+			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+		}
+		ticks = 0;
+		
+	}
+}
+
 
 /**
 * @brief Converts ADC reading to temperature in celsius
