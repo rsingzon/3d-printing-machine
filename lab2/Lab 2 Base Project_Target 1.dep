@@ -1,5 +1,5 @@
 Dependencies for Project 'Lab 2 Base Project', Target 'Target 1': (DO NOT MODIFY !)
-F (.\source\main.c)(0x54E0FF36)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\main.o --omf_browse .\object\main.crf --depend .\object\main.d)
+F (.\source\main.c)(0x54E10D5D)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\main.o --omf_browse .\object\main.crf --depend .\object\main.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x52FE7B3E)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h)(0x529F63E2)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include\core_cm4.h)(0x5384C176)
@@ -37,6 +37,7 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm3
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_dcmi.h)(0x52B455A6)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_fsmc.h)(0x52B455A6)
 I (source\init.h)(0x54DFCCBF)
+I (source\kstate.h)(0x54E10701)
 F (.\source\fputc_debug.c)(0x54244EB4)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\fputc_debug.o --omf_browse .\object\fputc_debug.crf --depend .\object\fputc_debug.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x52FE7B3E)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h)(0x529F63E2)
@@ -74,7 +75,7 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm3
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_dac.h)(0x52B455A6)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_dcmi.h)(0x52B455A6)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_fsmc.h)(0x52B455A6)
-F (.\source\init.c)(0x54E0F756)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\init.o --omf_browse .\object\init.crf --depend .\object\init.d)
+F (.\source\init.c)(0x54E10AD6)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\init.o --omf_browse .\object\init.crf --depend .\object\init.d)
 I (source\init.h)(0x54DFCCBF)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h)(0x529F63E2)
 I (C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include\core_cm4.h)(0x5384C176)
@@ -112,6 +113,11 @@ I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm3
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_dcmi.h)(0x52B455A6)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\stm32f4xx_fsmc.h)(0x52B455A6)
 F (.\source\init.h)(0x54DFCCBF)()
+F (.\source\Kalmanfilter_C.c)(0x54E106F8)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\kalmanfilter_c.o --omf_browse .\object\kalmanfilter_c.crf --depend .\object\kalmanfilter_c.d)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x52FE7B3E)
+I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x52FE7B3E)
+I (source\kstate.h)(0x54E10701)
+F (.\source\kstate.h)(0x54E10701)()
 F (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\src\misc.c)(0x52B455A6)(-c --cpu Cortex-M4.fp -D__MICROLIB -g -O0 --apcs=interwork -I.\source --c99-I P:\dev\ecse426\lab2\RTE-I P:\dev\ecse426\lab2\RTE\Device\STM32F407VG-I C:\Keil_v5\ARM\PACK\ARM\CMSIS\4.1.1\CMSIS\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include-I C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc-D_RTE_ -DSTM32F40_41xxx -DHSE_VALUE="8000000" -DUSE_STDPERIPH_DRIVER -o .\object\misc.o --omf_browse .\object\misc.crf --depend .\object\misc.d)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\StdPeriph_Driver\inc\misc.h)(0x52B455A6)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F4xx_DFP\1.0.8\Device\Include\stm32f4xx.h)(0x529F63E2)

@@ -10,16 +10,18 @@
 #include "stm32f4xx.h"                  // Device header
 #include "stm32f4xx_conf.h"
 #include "init.h"
+#include "kstate.h"
+
 
 #define AVG_SLOPE 2.5
 #define AVG_SLOPE_INVERSE 1/AVG_SLOPE
-#define SCALE 0.7624
+#define SCALE 0.74
 
 float to_celsius(int v_sense);
 static volatile uint_fast16_t ticks;
 void delay_ms(int ms);
 
-int main(){
+ int main(){
 	
 	//Initialize the GPIOs and ADC
 	initIO();
@@ -30,6 +32,8 @@ int main(){
 	
 	// Configure SysTick to use 1ms period
 	SysTick_Config(SystemCoreClock / 1000); 
+	
+	kalman_state kstate = {0.5, 0.5, 0.0, 0.0, 0.0};
 	
 	while(1){
 		
@@ -51,8 +55,14 @@ int main(){
 		while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //Could be through interrupts (Later)
 		ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //EOC means End Of Conversion
 		ADC_GetConversionValue(ADC1); // Result available in ADC1->DR
-		printf("%f\n",to_celsius(ADC1->DR));
-		//printf("%d\n",ADC1->DR);
+		
+		float temperature = to_celsius(ADC1->DR);
+		printf("%f\t%d\n",temperature, ADC1->DR);
+		
+		
+		kalman_update(&kstate, temperature);
+		
+		
 	}
 	return 0;
 }
