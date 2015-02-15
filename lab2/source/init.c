@@ -74,11 +74,10 @@ void initADC(void)
 	// Enable module
 	ADC_Cmd(ADC1, ENABLE); 
 	
-	
 	// Set ADC channel and sample time
-	ADC_RegularChannelConfig(ADC1, ADC_Channel_16, 1, ADC_SampleTime_480Cycles);
-	ADC_SoftwareStartConv(ADC1); //Starting Conversion, waiting for it to finish, clearing the flag, reading the result
-	while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //Could be through interrupts (Later)
-	ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //EOC means End Of Conversion
-	ADC_GetConversionValue(ADC1); // Result available in ADC1->DR
+	//ADC_RegularChannelConfig(ADC1, ADC_Channel_16, 1, ADC_SampleTime_480Cycles);
+	
+	
+	ADC_TempSensorVrefintCmd(ENABLE); //Enable the connections to the temp sensor
+	ADC_RegularChannelConfig(ADC1, ADC_Channel_TempSensor, 1, ADC_SampleTime_480Cycles); //Cofigure the ADC Channel
 }
