@@ -33,7 +33,7 @@ void fadeLEDs();
 	ticks = 0;
 	
 	// Configure SysTick to use 20ms period
-	SysTick_Config(1 * SystemCoreClock / 1000); 
+	SysTick_Config(20 * SystemCoreClock / 1000); 
 	
 	kalman_state kstate = {0.5, 0.5, 0.0, 0.0, 0.0};
 	float temp;
@@ -46,15 +46,29 @@ void fadeLEDs();
 		
 		// Read temperature values
 		temp = to_celsius(readADC());
-		printf("%f\t%d\n",temp, ADC1->DR);
-		filteredTemp = kalman_update(&kstate, temp);		
 		
-		/*
+		
+		kalman_state kstate_1 = {2.0, 0.5, 0.0, 0.0, 0.0};
+		kalman_state kstate_2 = {5.0, 0.005, 0.0, 0.0, 0.0};
+		kalman_state kstate_3 = {2.0, 0.005, 0.0, 0.0, 0.0};
+		kalman_state kstate_4 = {3.0, 0.005, 0.0, 0.0, 0.0};
+		kalman_state kstate_5 = {4.0, 0.005, 0.0, 0.0, 0.0};
+		kalman_state kstate_6 = {5.0, 0.010, 0.0, 0.0, 0.0};
+		
+
+		float filteredTemp1 = kalman_update(&kstate_1, temp);		
+		float filteredTemp2 = kalman_update(&kstate_2, temp);		
+		float filteredTemp3 = kalman_update(&kstate_3, temp);		
+		float filteredTemp4 = kalman_update(&kstate_4, temp);		
+		float filteredTemp5 = kalman_update(&kstate_5, temp);		
+		float filteredTemp6 = kalman_update(&kstate_6, temp);		
+		
+		printf("%f,%f,%f,%f,%f,%f,%f\n",temp,filteredTemp1, filteredTemp2, filteredTemp3,  filteredTemp4, filteredTemp5, filteredTemp6);
+		
+		
+		// Display warning if temperature exceeds 50 degrees
 		if (filteredTemp >= 50.0) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on green
-			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on green
-			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on green
-			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on green
+			fadeLEDs();
 		}
 		else if (filteredTemp - referenceTemp > 2) {
 			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
@@ -103,10 +117,8 @@ void fadeLEDs();
 		else{
 			
 		}
-		*/
-		fadeLEDs();
 		
-		delay_ms(20);
+		delay_ms(1);
 		ticks = 0;				
 	}
 	return 0;
@@ -127,24 +139,44 @@ int readADC()
 
 void fadeLEDs()
 {
-	int period = 50;
+	int period = 20;
 	int periods;	
-	
-	for (periods = 1; periods < period; periods++) {
+	int count = 0;
 		
-		while (ticks < periods) {
+	for (periods = 0; periods < period; periods++) {
+		
+		while (count < periods) {
 			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on blue
 			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on blue
 			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on blue
 			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+			count++;
 		}
-		ticks = 0;
-		while (ticks < period-periods){
+		while (count < period){
 			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+			count ++;
 		}
-		ticks = 0;
-		
+		count = 0;
 	}
+	
+	
+	/*
+	for (periods = period; periods > 5; periods = periods - 2) {
+		
+		while (count < periods) {
+			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on blue
+			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on blue
+			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on blue
+			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+			count++;
+		}
+		count = 0;
+		while (count < period-periods){
+			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+			count++;
+		}
+	}
+	*/
 }
 
 
@@ -154,8 +186,9 @@ void fadeLEDs()
 */
 float to_celsius(int v_sense)
 {
-	v_sense = v_sense * SCALE;
-	return ((v_sense - 760) * AVG_SLOPE_INVERSE) + 25;
+	float v_sense_f = (float) v_sense;
+	v_sense_f = v_sense_f * SCALE;
+	return ((v_sense_f - 760.0) * AVG_SLOPE_INVERSE) + 25;
 }
 
 
