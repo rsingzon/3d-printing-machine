@@ -10,6 +10,7 @@
 #include "stm32f4xx.h"                  // Device header
 #include "stm32f4xx_conf.h"
 #include "init.h"
+#include "led.h"
 #include "kstate.h"
 
 
@@ -35,10 +36,12 @@ void fadeLEDs();
 	// Configure SysTick to use 20ms period
 	SysTick_Config(20 * SystemCoreClock / 1000); 
 	
-	kalman_state kstate = {0.5, 0.5, 0.0, 0.0, 0.0};
+	kalman_state kstate = {2.0, 0.5, 0.0, 0.0, 0.0};
+	 
 	float temp;
-	float filteredTemp;
-	float referenceTemp = readADC();
+	float filteredTemp = to_celsius(readADC());
+	float referenceTemp = filteredTemp;
+	
 	int currentLED = 'B';
 	GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
 	
@@ -47,30 +50,16 @@ void fadeLEDs();
 		// Read temperature values
 		temp = to_celsius(readADC());
 		
-		fadeLEDs();
-		/*
-		kalman_state kstate_1 = {2.0, 0.5, 0.0, 0.0, 0.0};
-		kalman_state kstate_2 = {5.0, 0.005, 0.0, 0.0, 0.0};
-		kalman_state kstate_3 = {2.0, 0.005, 0.0, 0.0, 0.0};
-		kalman_state kstate_4 = {3.0, 0.005, 0.0, 0.0, 0.0};
-		kalman_state kstate_5 = {4.0, 0.005, 0.0, 0.0, 0.0};
-		kalman_state kstate_6 = {5.0, 0.010, 0.0, 0.0, 0.0};
-		
-
-		float filteredTemp1 = kalman_update(&kstate_1, temp);		
-		float filteredTemp2 = kalman_update(&kstate_2, temp);		
-		float filteredTemp3 = kalman_update(&kstate_3, temp);		
-		float filteredTemp4 = kalman_update(&kstate_4, temp);		
-		float filteredTemp5 = kalman_update(&kstate_5, temp);		
-		float filteredTemp6 = kalman_update(&kstate_6, temp);		
-		
-		printf("%f,%f,%f,%f,%f,%f,%f\n",temp,filteredTemp1, filteredTemp2, filteredTemp3,  filteredTemp4, filteredTemp5, filteredTemp6);
-		
+		// Filter temperature values	
+		filteredTemp = kalman_update(&kstate, temp);				
 		
 		// Display warning if temperature exceeds 50 degrees
 		if (filteredTemp >= 50.0) {
 			fadeLEDs();
+			referenceTemp = filteredTemp;
 		}
+		
+		// Illuminate LEDs in clockwise fashion if the temperature is increasing
 		else if (filteredTemp - referenceTemp > 2) {
 			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
 			switch(currentLED){
@@ -93,6 +82,8 @@ void fadeLEDs();
 			}
 			referenceTemp = filteredTemp;
 		} 
+		
+		// Illuminate the LEDs in a counter clockwise fashion if the temperature is decreasing
 		else if (filteredTemp - referenceTemp < -2) {
 			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
 			switch(currentLED){
@@ -117,10 +108,9 @@ void fadeLEDs();
 		}
 		else{
 			
-		}
-		*/
+		}		
 		
-		
+		// Wait until the next SysTick interrupt
 		delay_ms(1);
 		ticks = 0;				
 	}
@@ -138,49 +128,6 @@ int readADC()
 	ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //EOC means End Of Conversion
 	ADC_GetConversionValue(ADC1); // Result available in ADC1->DR
 	return ADC1->DR;
-}
-
-/**
-* @brief Fades the LEDs in and out 
-* @retval None
-*/
-void fadeLEDs()
-{	
-	int period = 7500;
-	int dutyCycle;
-	int count = 0;
-	
-	// Fade in LEDs
-	for (dutyCycle = 0; dutyCycle < 2500; dutyCycle++) {
-		while (count < dutyCycle) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_12); 
-			GPIO_SetBits(GPIOD,GPIO_Pin_13); 
-			GPIO_SetBits(GPIOD,GPIO_Pin_14); 
-			GPIO_SetBits(GPIOD,GPIO_Pin_15); 
-			count++;
-		}
-		while (count < period){
-			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-			count++;
-		}
-		count = 0;
-	}
-	
-	// Fade out LEDs
-	for (dutyCycle = 2500; dutyCycle > 0; dutyCycle--) {
-		while (count < dutyCycle) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_12); 
-			GPIO_SetBits(GPIOD,GPIO_Pin_13); 
-			GPIO_SetBits(GPIOD,GPIO_Pin_14); 
-			GPIO_SetBits(GPIOD,GPIO_Pin_15); 
-			count++;
-		}
-		while (count < period){
-			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-			count++;
-		}
-		count = 0;
-	}
 }
 
 
