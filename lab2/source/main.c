@@ -47,7 +47,8 @@ void fadeLEDs();
 		// Read temperature values
 		temp = to_celsius(readADC());
 		
-		
+		fadeLEDs();
+		/*
 		kalman_state kstate_1 = {2.0, 0.5, 0.0, 0.0, 0.0};
 		kalman_state kstate_2 = {5.0, 0.005, 0.0, 0.0, 0.0};
 		kalman_state kstate_3 = {2.0, 0.005, 0.0, 0.0, 0.0};
@@ -117,6 +118,8 @@ void fadeLEDs();
 		else{
 			
 		}
+		*/
+		
 		
 		delay_ms(1);
 		ticks = 0;				
@@ -137,46 +140,47 @@ int readADC()
 	return ADC1->DR;
 }
 
+/**
+* @brief Fades the LEDs in and out 
+* @retval None
+*/
 void fadeLEDs()
-{
-	int period = 20;
-	int periods;	
+{	
+	int period = 7500;
+	int dutyCycle;
 	int count = 0;
-		
-	for (periods = 0; periods < period; periods++) {
-		
-		while (count < periods) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on blue
-			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on blue
-			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on blue
-			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+	
+	// Fade in LEDs
+	for (dutyCycle = 0; dutyCycle < 2500; dutyCycle++) {
+		while (count < dutyCycle) {
+			GPIO_SetBits(GPIOD,GPIO_Pin_12); 
+			GPIO_SetBits(GPIOD,GPIO_Pin_13); 
+			GPIO_SetBits(GPIOD,GPIO_Pin_14); 
+			GPIO_SetBits(GPIOD,GPIO_Pin_15); 
 			count++;
 		}
 		while (count < period){
 			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-			count ++;
+			count++;
 		}
 		count = 0;
 	}
 	
-	
-	/*
-	for (periods = period; periods > 5; periods = periods - 2) {
-		
-		while (count < periods) {
-			GPIO_SetBits(GPIOD,GPIO_Pin_12); // Turn on blue
-			GPIO_SetBits(GPIOD,GPIO_Pin_13); // Turn on blue
-			GPIO_SetBits(GPIOD,GPIO_Pin_14); // Turn on blue
-			GPIO_SetBits(GPIOD,GPIO_Pin_15); // Turn on blue
+	// Fade out LEDs
+	for (dutyCycle = 2500; dutyCycle > 0; dutyCycle--) {
+		while (count < dutyCycle) {
+			GPIO_SetBits(GPIOD,GPIO_Pin_12); 
+			GPIO_SetBits(GPIOD,GPIO_Pin_13); 
+			GPIO_SetBits(GPIOD,GPIO_Pin_14); 
+			GPIO_SetBits(GPIOD,GPIO_Pin_15); 
 			count++;
 		}
-		count = 0;
-		while (count < period-periods){
+		while (count < period){
 			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
 			count++;
 		}
+		count = 0;
 	}
-	*/
 }
 
 
