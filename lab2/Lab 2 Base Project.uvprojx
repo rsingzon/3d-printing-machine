@@ -424,6 +424,26 @@
               <FileType>5</FileType>
               <FilePath>.\source\init.h</FilePath>
             </File>
+            <File>
+              <FileName>Kalmanfilter_C.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\source\Kalmanfilter_C.c</FilePath>
+            </File>
+            <File>
+              <FileName>kstate.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\source\kstate.h</FilePath>
+            </File>
+            <File>
+              <FileName>led.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\source\led.c</FilePath>
+            </File>
+            <File>
+              <FileName>led.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\source\led.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
