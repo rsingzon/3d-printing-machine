@@ -36,7 +36,7 @@ void fadeLEDs();
 	// Configure SysTick to use 20ms period
 	SysTick_Config(20 * SystemCoreClock / 1000); 
 	
-	kalman_state kstate = {2.0, 0.5, 0.0, 0.0, 0.0};
+	kalman_state kstate = {15.0, 1.0, 0.0, 0.0, 0.0};
 	 
 	float temp;
 	float filteredTemp = to_celsius(readADC());
@@ -51,10 +51,11 @@ void fadeLEDs();
 		temp = to_celsius(readADC());
 		
 		// Filter temperature values	
-		filteredTemp = kalman_update(&kstate, temp);				
+		filteredTemp = kalman_update(&kstate, temp);	
+		printf("%f\n", filteredTemp);
 		
 		// Display warning if temperature exceeds 50 degrees
-		if (filteredTemp >= 50.0) {
+		if (filteredTemp >= 40.0) {
 			fadeLEDs();
 			referenceTemp = filteredTemp;
 		}

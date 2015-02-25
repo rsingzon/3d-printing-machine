@@ -16,6 +16,8 @@
 */
 void fadeLEDs()
 {	
+	// The fade method uses the clock to count the period
+	// Core clock = 168MHz
 	int period = 7500;
 	int dutyCycle;
 	int count = 0;
