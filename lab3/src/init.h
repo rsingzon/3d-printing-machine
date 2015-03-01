@@ -5,7 +5,6 @@
   * @brief   Header file for initialization code
 	*/
 
-
 #ifndef __INIT_H
 #define __INIT_H
 
@@ -16,6 +15,7 @@
 
 // Function prototypes
 void initAccelerometer();
+void initAccelerometerInterrupt();
 void toAngles(float *accValues, float *angles);
 
 #endif

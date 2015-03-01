@@ -34,6 +34,36 @@ void initAccelerometer()
 	LIS3DSH_DataReadyInterruptConfig(&interrupt_init);
 }
 
+void initAccelerometerInterrupt(void)
+{
+	// Enable the clock for the external interrupt line (EXTI)
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+	
+	// Select the pin from which interrupts should be read
+	SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource0);	
+	
+	// Initialization struct
+	EXTI_InitTypeDef interrupt_init;
+
+	interrupt_init.EXTI_Line = EXTI_Line0; 							// Use EXTI Line 0 
+  interrupt_init.EXTI_Mode = EXTI_Mode_Interrupt;     // Set the EXTI mode to interrupt
+  interrupt_init.EXTI_Trigger = EXTI_Trigger_Rising; 	// Set the trigger to rising edge
+  interrupt_init.EXTI_LineCmd = ENABLE;     					// Enable the EXTI line    
+
+	// Enable interrupts
+	EXTI_Init(&interrupt_init);
+	
+	//Enable the NVIC 
+	NVIC_InitTypeDef NVIC_init; 
+	
+	NVIC_init.NVIC_IRQChannel = EXTI0_IRQn; 					//Use EXTI Line 0
+	NVIC_init.NVIC_IRQChannelPreemptionPriority = 0; 	//Set preemption priority
+	NVIC_init.NVIC_IRQChannelSubPriority = 1; 				//Set sub prioirity
+	NVIC_init.NVIC_IRQChannelCmd = ENABLE; 						//Enable NVIC
+	
+	NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
+}
+
 
 void toAngles(float *accValues, float *angles)
 {
@@ -44,13 +74,12 @@ void toAngles(float *accValues, float *angles)
     float roll = 0; 
     float pitch = 0;
     
-    roll = y*y + z*z; 										// Square denominator
-    roll = sqrtf(roll); 											// Square root denominator
-    roll = x / roll; 													// Divide by numerator
-    roll = atanf(roll); 											// Take arctan
+    roll = y*y + z*z; 							// Square denominator
+    roll = sqrtf(roll); 						// Square root denominator
+    roll = x / roll; 								// Divide by numerator
+    roll = atanf(roll); 						// Take arctan
     
     roll = (float)(roll * RADIANS_TO_DEGREES); 	//Convert to degrees and return as float
-    
     
     pitch = x*x + z*z; 							// Square denominator
     pitch = sqrtf(pitch); 					// Square root denominator
@@ -59,7 +88,7 @@ void toAngles(float *accValues, float *angles)
     
     pitch = (float)(pitch * RADIANS_TO_DEGREES);
     
-    //Store results
+    // Save angles in output array
     angles[0] = roll;
     angles[1] = pitch;
 }
