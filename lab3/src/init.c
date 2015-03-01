@@ -33,3 +33,33 @@ void initAccelerometer()
 	// Initialize interrupts
 	LIS3DSH_DataReadyInterruptConfig(&interrupt_init);
 }
+
+
+void toAngles(float *accValues, float *angles)
+{
+    float x = accValues[0];
+    float y = accValues[1];
+    float z = accValues[2];
+    
+    float roll = 0; 
+    float pitch = 0;
+    
+    roll = y*y + z*z; 										// Square denominator
+    roll = sqrtf(roll); 											// Square root denominator
+    roll = x / roll; 													// Divide by numerator
+    roll = atanf(roll); 											// Take arctan
+    
+    roll = (float)(roll * RADIANS_TO_DEGREES); 	//Convert to degrees and return as float
+    
+    
+    pitch = x*x + z*z; 							// Square denominator
+    pitch = sqrtf(pitch); 					// Square root denominator
+    pitch = y / pitch; 							// Divide by numerator
+    pitch = atanf(pitch); 					// Take arctan
+    
+    pitch = (float)(pitch * RADIANS_TO_DEGREES);
+    
+    //Store results
+    angles[0] = roll;
+    angles[1] = pitch;
+}
