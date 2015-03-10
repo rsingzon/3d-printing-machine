@@ -14,4 +14,11 @@
 #define ROW4 GPIO_Pin_6
 #define ROWS GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6
 
-void read_value();
+
+float read_from_user();
+char get_debounced_value();
+char get_raw_value();
+void reset_GPIO();
+void flip_GPIO();
+int getValue(int column, int row);
+int buttonPressed();

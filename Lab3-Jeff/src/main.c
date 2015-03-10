@@ -68,8 +68,7 @@ int main(){
 //				value = 999;
 //				interruptCounter=0;
 //			}
-			
-			read_value();
+			read_from_user();
 		}
 	
 	

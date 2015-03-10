@@ -99,13 +99,14 @@ void toAngles(float *accValues, float *angles)
 void initIO(){
 		GPIO_InitTypeDef GPIO_InitStructureB;
 		GPIO_InitTypeDef GPIO_InitStructureC;
-		GPIO_InitTypeDef GPIO_InitStructureDColumn;
+		GPIO_InitTypeDef GPIO_InitStructureD;
 		GPIO_InitTypeDef GPIO_InitStructureE;
 	
-		// Enable clock for GPIOB and GPIOC, LED pinouts on these GPIO buses
+		// Enable clock for GPIO busses
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	
 		// Set pins 0, 1, 4, 5, 7, 8, 11, 12, 13, 14, and 15 as output for GPIOB
 		GPIO_InitStructureB.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1| GPIO_Pin_4| GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
@@ -125,13 +126,13 @@ void initIO(){
 		
 		
 		// Set Column pins of keypad
-		GPIO_InitStructureDColumn.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
-		GPIO_InitStructureDColumn.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructureDColumn.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureDColumn.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureDColumn.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructureDColumn.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init(GPIOD, &GPIO_InitStructureDColumn);
+		GPIO_InitStructureD.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
+		GPIO_InitStructureD.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructureD.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureD.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureD.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureD.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOD, &GPIO_InitStructureD);
 		
 		
 		// Set Row pins of keypad
