@@ -65,6 +65,31 @@ void initAccelerometerInterrupt(void)
 }
 
 
+void adjustAccValues(float *rawValues, float *adjustedValues){
+		
+		// Add or subtract the offset to each of the values for the axes
+		// X Value
+		if (rawValues[0] < 1000) {
+				adjustedValues[0] = rawValues[0] + X_OFFSET;
+		} else if (rawValues[0] > 1000){
+				adjustedValues[0] = rawValues[0] - X_OFFSET;
+		}
+	
+		// Y Value
+		if (rawValues[1] < 1000) {
+				adjustedValues[1] = rawValues[1] + Y_OFFSET;
+		} else if (rawValues[1] > 1000){
+				adjustedValues[1] = rawValues[1] - Y_OFFSET;
+		}
+		
+		// Z Value
+		if (rawValues[2] < 1000) {
+				adjustedValues[2] = rawValues[2] + Z_OFFSET;
+		} else if (rawValues[2] > 1000){
+				adjustedValues[2] = rawValues[2] - Z_OFFSET;
+		}
+}
+
 void toAngles(float *accValues, float *angles)
 {
     float x = accValues[0];
