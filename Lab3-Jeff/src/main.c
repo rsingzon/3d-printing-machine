@@ -68,7 +68,8 @@ int main(){
 //				value = 999;
 //				interruptCounter=0;
 //			}
-			read_from_user();
+			float f = read_from_user();
+			printf("%f\n", f);
 		}
 	
 	

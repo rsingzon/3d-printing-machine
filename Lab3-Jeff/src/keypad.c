@@ -6,7 +6,38 @@ GPIO_InitTypeDef GPIO_InitStructureE;
 
 
 float read_from_user(){
-	printf("%c\n", get_debounced_value());
+	float value = 0.0;
+	float current;
+	int character_number=0;
+	while(1){
+		char c = get_debounced_value();
+		while(char_to_float(c)<0) {c = get_debounced_value();}
+		current = char_to_float(c);
+		if(current==10.0)
+			break;
+		else if(character_number==0){
+			value += current;
+			character_number++;
+		}
+		else if(character_number==1){
+			value *=10.0;
+			value += current;
+			character_number++;
+		}
+		else if(character_number==2){
+			value *=10.0;
+			value += current;
+			character_number++;
+		}
+		else{
+			int temp = (int) value;
+			temp = temp % 100;
+			value = (float) temp;
+			value *=10.0;
+			value+=current;			
+		}
+	}
+	return value;
 }
 
 char get_debounced_value(){
@@ -168,6 +199,35 @@ int getValue(int column, int row){
 	}
 }
 
+float char_to_float(char c){
+	switch(c){
+		case '0':
+			return 0.0;
+		case '1':
+			return 1.0;
+		case '2':
+			return 2.0;
+		case '3':
+			return 3.0;
+		case '4':
+			return 4.0;
+		case '5':
+			return 5.0;
+		case '6':
+			return 6.0;
+		case '7':
+			return 7.0;
+		case '8':
+			return 8.0;
+		case '9':
+			return 9.0;
+		case 'D':
+			return 10.0;
+		default:
+			return -1.0;
+	}
+	
+}
 int buttonPressed(){
 	if(!GPIO_ReadInputDataBit(GPIOD, COL1)){
 		return 1;

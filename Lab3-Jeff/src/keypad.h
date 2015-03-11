@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
 
@@ -21,4 +22,5 @@ char get_raw_value();
 void reset_GPIO();
 void flip_GPIO();
 int getValue(int column, int row);
+float char_to_float(char c);
 int buttonPressed();
