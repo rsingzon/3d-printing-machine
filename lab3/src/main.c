@@ -3,6 +3,9 @@
 #include "stm32f4xx_conf.h"
 
 #include "init.h"
+#include "accelerometer.h"
+
+#define DEBUG 1
 
 // Global variables
 int accelerometerReady = 0; 		// Interrupt flag for accelerometer
@@ -12,29 +15,47 @@ void setAccelerometerFlag(void);
 void resetAccelerometerFlag(void);
 
 int main(){
-	
+		
 	initAccelerometer();
 	initAccelerometerInterrupt();
 	
 	float rawAccValues[3]; 				// Raw values
+	float adjustedAccValues[3];		// Calibrated values
 	float angles[2];							// Roll and pitch in degrees
 	
+	int count = 0;
 	while(1){
+	//while(count < 250){
 		
+	
 		// Wait for the accelerometer to set an interrupt
 		if (accelerometerReady) {
 			
 			// Read accelerometer values
 			LIS3DSH_ReadACC(rawAccValues);
+			adjustAccValues(rawAccValues, adjustedAccValues);
 			resetAccelerometerFlag();
-			printf("X: %f\n", rawAccValues[0]);
-			printf("Y: %f\n", rawAccValues[1]);
-			printf("Z: %f\n\n", rawAccValues[2]);
+			
+			if (DEBUG) {
+//				printf("Raw values\n");
+//				printf("X: %f\n", rawAccValues[0]);
+//				printf("Y: %f\n", rawAccValues[1]);
+//				printf("Z: %f\n\n", rawAccValues[2]);
 		
-			// Convert values to angles in degrees
-			toAngles(rawAccValues, angles);
-			printf("Roll: %f\n", angles[0]);
-			printf("Pitch: %f\n\n", angles[1]);
+//				printf("Adjusted values\n");
+//				printf("X: %f\n", adjustedAccValues[0]);
+//				printf("Y: %f\n", adjustedAccValues[1]);
+//				printf("Z: %f\n\n", adjustedAccValues[2]);
+				
+				// Convert values to angles in degrees
+//				toAngles(rawAccValues, angles);
+//				printf("Roll: %f\n", angles[0]);
+//				printf("Pitch: %f\n\n", angles[1]);
+				
+				printf("%f,%f,%f,\n", adjustedAccValues[0],adjustedAccValues[1],adjustedAccValues[2]);
+			}
+			
+			count++;		
 		}
 	}
 	
