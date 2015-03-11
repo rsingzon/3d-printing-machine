@@ -3,6 +3,7 @@
 #include "stm32f4xx_conf.h"
 
 #include "init.h"
+#include "accelerometer.h"
 
 #define DEBUG 1
 
@@ -36,20 +37,22 @@ int main(){
 			resetAccelerometerFlag();
 			
 			if (DEBUG) {
-				printf("Raw values\n");
-				printf("X: %f\n", rawAccValues[0]);
-				printf("Y: %f\n", rawAccValues[1]);
-				printf("Z: %f\n\n", rawAccValues[2]);
+//				printf("Raw values\n");
+//				printf("X: %f\n", rawAccValues[0]);
+//				printf("Y: %f\n", rawAccValues[1]);
+//				printf("Z: %f\n\n", rawAccValues[2]);
 		
-				printf("Adjusted values\n");
-				printf("X: %f\n", adjustedAccValues[0]);
-				printf("Y: %f\n", adjustedAccValues[1]);
-				printf("Z: %f\n\n", adjustedAccValues[2]);
+//				printf("Adjusted values\n");
+//				printf("X: %f\n", adjustedAccValues[0]);
+//				printf("Y: %f\n", adjustedAccValues[1]);
+//				printf("Z: %f\n\n", adjustedAccValues[2]);
 				
 				// Convert values to angles in degrees
-				toAngles(rawAccValues, angles);
-				printf("Roll: %f\n", angles[0]);
-				printf("Pitch: %f\n\n", angles[1]);
+//				toAngles(rawAccValues, angles);
+//				printf("Roll: %f\n", angles[0]);
+//				printf("Pitch: %f\n\n", angles[1]);
+				
+				printf("%f,%f,%f,\n", adjustedAccValues[0],adjustedAccValues[1],adjustedAccValues[2]);
 			}
 			
 			count++;		
