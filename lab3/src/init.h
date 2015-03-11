@@ -11,8 +11,13 @@
 #include <math.h>
 #include "lis3dsh.h"
 
+#include "stm32f4xx.h"
+#include "stm32f4xx_conf.h"
+
 // Function prototypes
 void initAccelerometer();
 void initAccelerometerInterrupt();
+void initIO();
+void initTimer();
 
 #endif

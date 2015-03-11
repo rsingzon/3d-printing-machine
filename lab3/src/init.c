@@ -64,3 +64,78 @@ void initAccelerometerInterrupt(void)
 	NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
 }
 
+void initIO(){
+		GPIO_InitTypeDef GPIO_InitStructureB;
+		GPIO_InitTypeDef GPIO_InitStructureC;
+		GPIO_InitTypeDef GPIO_InitStructureD;
+		GPIO_InitTypeDef GPIO_InitStructureE;
+	
+		// Enable clock for GPIO busses
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+	
+		// Set pins 0, 1, 4, 5, 7, 8, 11, 12, 13, 14, and 15 as output for GPIOB
+		GPIO_InitStructureB.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1| GPIO_Pin_4| GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructureB.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructureB.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureB.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureB.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_Init(GPIOB, &GPIO_InitStructureB);
+	
+		// Set pin 1, 2 as outputs for GPIOC (DP, degree symbol)
+		GPIO_InitStructureC.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_4;
+		GPIO_InitStructureC.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructureC.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureC.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureC.GPIO_PuPd = GPIO_PuPd_NOPULL;
+		GPIO_Init(GPIOC, &GPIO_InitStructureC);
+		
+		
+		// Set Column pins of keypad
+		GPIO_InitStructureD.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
+		GPIO_InitStructureD.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructureD.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureD.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureD.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureD.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOD, &GPIO_InitStructureD);
+		
+		
+		// Set Row pins of keypad
+		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
+		GPIO_InitStructureE.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructureE.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureE.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureE.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureE.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureE);
+		
+}
+
+void initTimer(){
+	
+		// Set up TIM3
+		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
+    TIM_TimeBaseInitTypeDef timerInitStructure; 
+    timerInitStructure.TIM_Prescaler = 100;										// Scales the clock period for counter
+    timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;		// to count up
+    timerInitStructure.TIM_Period = 400;												// Sets period between update events
+    timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;				// Specifies clock division, use standard
+    timerInitStructure.TIM_RepetitionCounter = 0;								// For PWM, only relevant for TIM1 and TIM8
+    TIM_TimeBaseInit(TIM3, &timerInitStructure);								// Send struct to TIM3
+    TIM_Cmd(TIM3, ENABLE);																			// Enable TIM3
+	
+		TIM_ITConfig(TIM3, TIM_IT_Update, ENABLE);									// This allows timer to generate update events (interrupts)
+
+		// Set up NVIC channel to handle interrupts from TIM3
+		NVIC_InitTypeDef nvicStructure;
+    nvicStructure.NVIC_IRQChannel = TIM3_IRQn;									// Sets NVIC channel to TIM3
+    nvicStructure.NVIC_IRQChannelPreemptionPriority = 0;				// Sets interrupt priority to the lowest
+    nvicStructure.NVIC_IRQChannelSubPriority = 1;								// Sets interrupt sub priority to the lowest
+    nvicStructure.NVIC_IRQChannelCmd = ENABLE;									// Enable this channel
+    NVIC_Init(&nvicStructure);																	// Initialize NVIC
+
+}
+
