@@ -5,8 +5,8 @@
 #include "init.h"
 #include "accelerometer.h"
 #include "kstate.h"
-
-#define DEBUG 1
+#include "keypad.h"
+#include "7seg.h"
 
 // Global variables
 int accelerometerReady = 0; 		// Interrupt flag for accelerometer
@@ -37,67 +37,18 @@ int main(){
 	initAccelerometer();
 	initAccelerometerInterrupt();
 	
-	float rawAccValues[3]; 				// Raw values
-	float adjustedAccValues[3];		// Calibrated values
-	float angles[2];							// Roll and pitch in degrees
+	float angles[2];
 	
-	// Define kalman states for each accelerometer output
-	kalman_state x_state;
-	kalman_state y_state;
-	kalman_state z_state;
-	
-	// Assign initial values for the states
-	x_state.q = 0.05;
-	x_state.r = 1.0;
-	x_state.x = 0.0;
-	x_state.p = 0.0;
-	x_state.k = 0.0;
-	
-	y_state.q = 0.05;
-	y_state.r = 1.0;
-	y_state.x = 0.0;
-	y_state.p = 0.0;
-	y_state.k = 0.0;
-	
-	z_state.q = 0.05;
-	z_state.r = 1.0;
-	z_state.x = 0.0;
-	z_state.p = 0.0;
-	z_state.k = 0.0;
-	
-	int count = 0;
-	while(1){
-	//while(count < 250){
-		
+	while(1){		
 	
 		// Wait for the accelerometer to set an interrupt
 		if (accelerometerReady) {
-			
-			// Read accelerometer values
-			LIS3DSH_ReadACC(rawAccValues);
-			adjustAccValues(rawAccValues, adjustedAccValues);
 			resetAccelerometerFlag();
 			
-			if (DEBUG) {
-//				printf("Raw values\n");
-//				printf("X: %f\n", rawAccValues[0]);
-//				printf("Y: %f\n", rawAccValues[1]);
-//				printf("Z: %f\n\n", rawAccValues[2]);
-		
-//				printf("Adjusted values\n");
-//				printf("X: %f\n", adjustedAccValues[0]);
-//				printf("Y: %f\n", adjustedAccValues[1]);
-//				printf("Z: %f\n\n", adjustedAccValues[2]);
-				
-				// Convert values to angles in degrees
-//				toAngles(rawAccValues, angles);
-//				printf("Roll: %f\n", angles[0]);
-//				printf("Pitch: %f\n\n", angles[1]);
-				
-				printf("%f,%f,%f,\n", adjustedAccValues[0],adjustedAccValues[1],adjustedAccValues[2]);
-			}
-			
-			count++;		
+			// Read accelerometers and set the display to the pitch
+			readAcc(angles);
+			value = angles[1];
+
 		}
 	}
 	

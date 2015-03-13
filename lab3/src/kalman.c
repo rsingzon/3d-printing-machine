@@ -8,18 +8,6 @@
 #include <stdlib.h>
 #include "kstate.h"
 
-int Kalmanfilter_C(float* InputArray, float* OutputArray, kalman_state* kstate, int Length)
-{
-	int i;
-	
-	/*initialize p and k*/
-	kstate->p = 0.0;
-	kstate->k =0.0;
-	
-	
-	return 0;
-}
-
 float kalman_update(struct kalman_state* kstate, float measurement){
 		/* self.p = self.p+self.q */
 		kstate->p =kstate->p + kstate->q;

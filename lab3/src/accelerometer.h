@@ -5,6 +5,10 @@
   * @brief   Header file for accelerometer control code
 	*/
 
+#include <math.h>
+#include "kstate.h"
+#include "lis3dsh.h"
+
 #ifndef __ACCELEROMETER_H
 #define __ACCELEROMETER_H
 
@@ -15,6 +19,7 @@
 #define Z_OFFSET 13.91
 
 // Function prototypes
+void readAcc(float *filteredCorrectedValues);
 void adjustAccValues(float* rawValues, float *adjustedValues);
 void toAngles(float *accValues, float *angles);
 
