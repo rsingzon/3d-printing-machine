@@ -40,20 +40,25 @@ void readAcc(float *angles){
 	LIS3DSH_ReadACC(rawAccValues);
 	adjustAccValues(rawAccValues, adjustedAccValues);
 	
-	toAngles(rawAccValues, angles);
+	// Filter X, Y, and Z measurements
+	kalman_update(&x_state, adjustedAccValues[0]);
+	kalman_update(&y_state, adjustedAccValues[1]);
+	kalman_update(&z_state, adjustedAccValues[2]);
 	
-		printf("Raw values\n");
-		printf("X: %f\n", rawAccValues[0]);
-		printf("Y: %f\n", rawAccValues[1]);
-		printf("Z: %f\n\n", rawAccValues[2]);
+	toAngles(adjustedAccValues, angles);
+	
+	printf("Raw values\n");
+	printf("X: %f\n", rawAccValues[0]);
+	printf("Y: %f\n", rawAccValues[1]);
+	printf("Z: %f\n\n", rawAccValues[2]);
 		
-		printf("Adjusted values\n");
-		printf("X: %f\n", adjustedAccValues[0]);
-		printf("Y: %f\n", adjustedAccValues[1]);
-		printf("Z: %f\n\n", adjustedAccValues[2]);
+	printf("Adjusted values\n");
+	printf("X: %f\n", adjustedAccValues[0]);
+	printf("Y: %f\n", adjustedAccValues[1]);
+	printf("Z: %f\n\n", adjustedAccValues[2]);
 				
-		printf("Roll: %f\n", angles[0]);
-		printf("Pitch: %f\n\n", angles[1]);
+	printf("Roll: %f\n", angles[0]);
+	printf("Pitch: %f\n\n", angles[1]);
 	
 }
 

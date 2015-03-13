@@ -45,7 +45,7 @@ int main(){
 		if (accelerometerReady) {
 			resetAccelerometerFlag();
 			
-			// Read accelerometers and set the display to the pitch
+			// Read accelerometers and set the display to the roll
 			readAcc(angles);
 			value = angles[1];
 
