@@ -4,6 +4,9 @@ void displayValue(float value, int digit) {
 	uint32_t digitOn;
 	int i, decimalPlace, intValue, displValue;
 	
+	if(value<0)
+		value*=-1;
+	
 	// Find where decimal place should go based on value
 	if(value<10){
 		decimalPlace=1;
@@ -58,6 +61,7 @@ void displayValue(float value, int digit) {
 	GPIO_WriteBit(GPIOB, digitOn, Bit_RESET);
 }
 
+// Maps digit to be displayed to corresponding segments
 void displaySegments(int number){
 	switch (number) {
         case 0:

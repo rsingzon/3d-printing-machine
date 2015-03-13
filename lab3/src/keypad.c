@@ -4,7 +4,8 @@ GPIO_InitTypeDef GPIO_InitStructureD;
 GPIO_InitTypeDef GPIO_InitStructureE;
 
 
-
+// This method gets the input from the user and returns a float
+// with the last 3 user entered digits, once enter(D) is pressed
 float read_from_user(){
 	float value = 0.0;
 	float current;
@@ -40,6 +41,7 @@ float read_from_user(){
 	return value;
 }
 
+// This method uses a counter to debounce rising and falling edges of a raw button press
 char get_debounced_value(){
 	int db_counter=0;
 	char c = get_raw_value();
@@ -68,6 +70,8 @@ char get_debounced_value(){
 	}
 	return c;
 }
+
+// Polls row and columns to resolve which button is pressed
 char get_raw_value(){
 	int foundColumn=0;
 	int column, row;
@@ -108,6 +112,7 @@ char get_raw_value(){
 	return getValue(column, row);
 }
 
+// Resets Column/Row GPIO's to initial configuration
 void reset_GPIO(){
 		// Set Column pins of keypad
 		GPIO_InitStructureD.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
@@ -129,6 +134,7 @@ void reset_GPIO(){
 		GPIO_Init(GPIOE, &GPIO_InitStructureE);
 }
 
+// Flip column to output and rows to input
 void flip_GPIO(){
 			// Set Column pins of keypad
 		GPIO_InitStructureD.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
@@ -150,6 +156,7 @@ void flip_GPIO(){
 		GPIO_Init(GPIOE, &GPIO_InitStructureE);
 }
 
+// Maps row, column combinations to character corresponding to that key
 int getValue(int column, int row){
 	switch(column){
 		case 1:

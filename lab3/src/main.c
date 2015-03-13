@@ -42,6 +42,9 @@ int main(){
 	float referenceAngle = 0.0;
 	float roll;
 	
+	float targetAngle = read_from_user();
+	printf("User input: %f\n", targetAngle);
+	
 	while(1){		
 	
 		// Wait for the accelerometer to set an interrupt
@@ -57,8 +60,26 @@ int main(){
 						value = roll;
 						referenceAngle = roll;
 						count = 0;
+					
+					if(abs(abs(roll) - targetAngle) < 4){
+						GPIO_SetBits(GPIOD,GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15); 
+						
+						value = targetAngle;
+					}
+					
+					else if(abs(roll) < targetAngle){
+						GPIO_SetBits(GPIOD,GPIO_Pin_14); 
+						GPIO_ResetBits(GPIOD,GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_15);
+					}
+					else{
+						GPIO_SetBits(GPIOD,GPIO_Pin_12); 
+						GPIO_ResetBits(GPIOD,GPIO_Pin_14 | GPIO_Pin_13 | GPIO_Pin_15);
+					}
 				}
 			}
+			
+			
+			
 		}
 		count++;
 		
