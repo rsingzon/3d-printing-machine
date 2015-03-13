@@ -38,6 +38,9 @@ int main(){
 	initAccelerometerInterrupt();
 	
 	float angles[2];
+	int count = 0;
+	float referenceAngle = 0.0;
+	float roll;
 	
 	while(1){		
 	
@@ -47,9 +50,18 @@ int main(){
 			
 			// Read accelerometers and set the display to the roll
 			readAcc(angles);
-			value = angles[1];
-
+			roll = angles[0];
+			
+			if(count >= 1000){
+				if (roll - referenceAngle > 1 || referenceAngle - roll > 1){
+						value = roll;
+						referenceAngle = roll;
+						count = 0;
+				}
+			}
 		}
+		count++;
+		
 	}
 	
 	

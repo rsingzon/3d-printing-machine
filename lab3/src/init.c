@@ -119,7 +119,7 @@ void initTimer(){
 		// Set up TIM3
 		RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);
     TIM_TimeBaseInitTypeDef timerInitStructure; 
-    timerInitStructure.TIM_Prescaler = 100;										// Scales the clock period for counter
+    timerInitStructure.TIM_Prescaler = 100;											// Scales the clock period for counter
     timerInitStructure.TIM_CounterMode = TIM_CounterMode_Up;		// to count up
     timerInitStructure.TIM_Period = 400;												// Sets period between update events
     timerInitStructure.TIM_ClockDivision = TIM_CKD_DIV1;				// Specifies clock division, use standard
