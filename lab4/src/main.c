@@ -8,6 +8,11 @@
 #include "keypad.h"
 #include "7seg.h"
 
+// Definitions for temperature sensor 
+#define AVG_SLOPE 2.5
+#define AVG_SLOPE_INVERSE 1/AVG_SLOPE
+#define SCALE 0.715
+
 // Global variables
 int accelerometerReady = 0; 		// Interrupt flag for accelerometer
 
@@ -15,6 +20,9 @@ int accelerometerReady = 0; 		// Interrupt flag for accelerometer
 void setAccelerometerFlag(void);
 void resetAccelerometerFlag(void);
 void TIM3_IRQHandler(void);
+float to_celsius(int v_sense);
+int readADC();
+void fadeLEDs();
 
 // Initialize values for display
 int digit=3;
@@ -26,6 +34,9 @@ int main(){
 		
 	// Enable GPIO
 	initIO();
+	
+	// Enable ADC
+	initADC();
 		
 	// Initialize timer and enable interrupts
 	initTimer();
@@ -130,4 +141,29 @@ void TIM3_IRQHandler(void)
 		digit = 4;
 	digit--;
 	interruptCounter++;
+}
+
+/**
+* @brief Reads the temperature sensor 
+* @retval integer 
+*/
+int readADC() 
+{
+	ADC_SoftwareStartConv(ADC1); //Starting Conversion, waiting for it to finish, clearing the flag, reading the result
+	while(ADC_GetFlagStatus(ADC1, ADC_FLAG_EOC) == RESET); //Could be through interrupts (Later)
+	ADC_ClearFlag(ADC1, ADC_FLAG_EOC); //EOC means End Of Conversion
+	ADC_GetConversionValue(ADC1); // Result available in ADC1->DR
+	return ADC1->DR;
+}
+
+
+/**
+* @brief Converts ADC reading to temperature in celsius
+* @retval integer 
+*/
+float to_celsius(int v_sense)
+{
+	float v_sense_f = (float) v_sense;
+	v_sense_f = v_sense_f * SCALE;
+	return ((v_sense_f - 760.0) * AVG_SLOPE_INVERSE) + 25;
 }
