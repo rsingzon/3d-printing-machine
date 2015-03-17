@@ -1,0 +1,33 @@
+*****7 SEGMENT DISPLAY*****
+
+Select 1	PB0	Pin 1
+Select 2	PB1	Pin 2
+Select 3	PB4	Pin 6
+Select 4	PB5	Pin 8
+
+A		PB7	Pin 14
+B		PB8	Pin 16
+C		PB11	Pin 13
+D		PB12	Pin 3
+E		PB13	Pin 5
+F		PB14	Pin 11
+G		PB15	Pin 15
+DP		PC1	Pin 7
+
+L3-EN		PC2	Pin 10
+L3		PC4	Pin 9
+
+Note: 	7 seg pins start at 1 in the bottom left,
+	and count counter-clockwise to 16
+
+*****KEYPAD*****
+
+COLUMN 7	PD0	Pin 1	
+COLUMN 6	PD1	Pin 2
+COLUMN 5	PD2	Pin 3
+COLUMN 4	PD3	Pin 4
+
+ROW 3		PE3	Pin 5
+ROW 2		PE4	Pin 6
+ROW 1		PE5	Pin 7
+ROW 0		PE6	Pin 8
