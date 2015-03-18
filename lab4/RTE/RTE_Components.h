@@ -3,13 +3,15 @@
  * Auto generated Run-Time-Environment Component Configuration File
  *      *** Do not modify ! ***
  *
- * Project: 'Lab 3 Base Project' 
+ * Project: 'RTX Base Project' 
  * Target:  'Target 1' 
  */
 
 #ifndef RTE_COMPONENTS_H
 #define RTE_COMPONENTS_H
 
+#define RTE_CMSIS_RTOS                  /* CMSIS-RTOS */
+        #define RTE_CMSIS_RTOS_RTX              /* CMSIS-RTOS Keil RTX */
 #define RTE_DEVICE_STARTUP_STM32F4xx    /* Device Startup for STM32F4 */
 #define RTE_DEVICE_STDPERIPH_ADC
 #define RTE_DEVICE_STDPERIPH_CAN
