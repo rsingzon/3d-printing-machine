@@ -1,5 +1,7 @@
 #include "7seg.h"
 
+int on_off = 0;
+
 void displayValue(float value, int digit) {
 	uint32_t digitOn;
 	int i, decimalPlace, intValue, displValue;

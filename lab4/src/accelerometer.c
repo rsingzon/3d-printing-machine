@@ -47,6 +47,7 @@ void readAcc(float *angles){
 	
 	toAngles(adjustedAccValues, angles);
 	
+	
 	printf("Raw values\n");
 	printf("X: %f\n", rawAccValues[0]);
 	printf("Y: %f\n", rawAccValues[1]);
@@ -59,6 +60,7 @@ void readAcc(float *angles){
 				
 	printf("Roll: %f\n", angles[0]);
 	printf("Pitch: %f\n\n", angles[1]);
+	
 	
 }
 
