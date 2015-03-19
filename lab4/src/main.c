@@ -25,6 +25,13 @@
 #define AVG_SLOPE_INVERSE 1/AVG_SLOPE
 #define SCALE 0.715
 
+// Define flags
+#define ACC_FLAG 0x01
+
+// Thread IDs
+osThreadId accThread;
+osThreadId tempThread;
+
 // Accelerometer/keypad function prototypes
 void setAccelerometerFlag(void);
 void resetAccelerometerFlag(void);
@@ -45,12 +52,19 @@ int temperatureReady = 0;
 int mode = 0;										// 0: Accelerometer, 1: Temperature
 int interruptCounter = 0;
 
-// Mutexes
-osMutexId angle_mutex;
-osMutexDef(angle_mutex);
+// Define threads 
+void accelerometerThread(void const *argument);
+void temperatureThread(void const *argument);
 
+// Define the thread priorities
+osThreadDef(accelerometerThread, osPriorityAboveNormal, 1, 0);
+osThreadDef(temperatureThread, osPriorityAboveNormal, 1, 0);
+
+// Mutex name definitions
+osMutexDef(Mutex_Angle);				
+osMutexId angle_mutex;
+osMutexDef(Mutex_Temperature);
 osMutexId temp_mutex;
-osMutexDef(temp_mutex);
 
 // Values for display
 int digit=3;
@@ -70,17 +84,17 @@ void accelerometerThread(void const *argument){
 	while(1){
 		
 		// Wait for the accelerometer to set an interrupt
-		if (accelerometerReady) {
-			resetAccelerometerFlag();
+		osSignalWait(ACC_FLAG, osWaitForever ); 			
 			
-			// Read accelerometers and set the display to the roll
-			readAcc(angles);
+		// Read accelerometers and set the display to the roll
+		readAcc(angles);
 			
-			// Wait for angle mutex before setting the angle
-			//osMutexWait(angle_mutex, osWaitForever);
-			//roll = angles[0];	
-			//osMutexRelease(angle_mutex);
-		}
+		// Wait for angle mutex before setting the angle
+		//osMutexWait(angle_mutex, osWaitForever);
+		roll = angles[0];	
+		//osMutexRelease(angle_mutex);
+		
+		osSignalClear(accThread, ACC_FLAG);
 	}
 }
 
@@ -107,14 +121,9 @@ void temperatureThread(void const *argument){
 			osMutexWait(temp_mutex, osWaitForever);
 			temp = filteredTemp;
 			osMutexRelease(temp_mutex);
-			
 		}
 	}
 }
-
-// Define the thread priorities
-osThreadDef(accelerometerThread, osPriorityNormal, 1, 0);
-osThreadDef(temperatureThread, osPriorityNormal, 1, 0);
 
 /*
  * main: initialize and start the system
@@ -122,10 +131,10 @@ osThreadDef(temperatureThread, osPriorityNormal, 1, 0);
 int main (void) {
   osKernelInitialize ();                    // initialize CMSIS-RTOS
 	
-	// ID for thread
-	osThreadId accThread;
-	osThreadId tempThread;
-	
+	// Create mutexes
+	angle_mutex = osMutexCreate(osMutex (Mutex_Angle));
+	temp_mutex = osMutexCreate(osMutex (Mutex_Temperature));
+		
   // initialize peripherals here
 	initIO();
 	initADC();
@@ -135,9 +144,8 @@ int main (void) {
 	
   // create 'thread' functions that start executing,
   // example: tid_name = osThreadCreate (osThread(name), NULL);
-	//Blinky_thread = osThreadCreate(osThread(Blinky), NULL);
 	accThread = osThreadCreate(osThread(accelerometerThread), NULL);
-	tempThread = osThreadCreate(osThread(temperatureThread), NULL);
+	//tempThread = osThreadCreate(osThread(temperatureThread), NULL);
 	
 	// Start thread execution
 	osKernelStart ();                         
@@ -146,29 +154,6 @@ int main (void) {
 	// Mode 0: Accelerometer mode
 	int count = 0;
 	float referenceAngle = 0.0;
-	
-	
-	while(1){
-		/*
-		// Mode 0: Angle mode
-		if(mode == 0){
-			printf("Roll: ");
-			osMutexWait(angle_mutex, osWaitForever);
-			value = roll;
-			osMutexRelease(angle_mutex);
-		}
-	
-		// Mode 1: Temperature mode
-		else{
-			printf("Temp: ");
-			osMutexWait(temp_mutex, osWaitForever);
-			value = temp;
-			osMutexRelease(temp_mutex);
-		}	
-		
-		printf(" %f\n", value);
-		*/
-	}	
 }
 
 /**
@@ -238,7 +223,8 @@ void resetTemperatureFlag(void)
 */
 void EXTI0_IRQHandler(void)
 {
-	setAccelerometerFlag(); 						//Set the flag
+	//setAccelerometerFlag(); 						//Set the flag
+	osSignalSet(accThread, ACC_FLAG);			// Set a signal for the accelerometer thread
 	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
 }
 
@@ -249,5 +235,5 @@ void EXTI0_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update);			// Clears incoming interrupt bit
-	setTemperatureFlag();
+	//setTemperatureFlag();
 }
