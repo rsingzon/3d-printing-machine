@@ -49,13 +49,11 @@ int readADC();
 void fadeLEDs();
 
 // Flags
-int accelerometerReady = 0; 	
-int temperatureReady = 0;
-int mode = 0;										// 0: Accelerometer, 1: Temperature
+int mode = 1;										// 0: Accelerometer, 1: Temperature
 int interruptCounter = 0;
 int keypad_flag = 0;
 int display_flag = 0;
-int flash_display = 1;				//should we flash the displayed value
+int flash_display = 0;				//should we flash the displayed value
 
 // Define threads 
 void accelerometerThread(void const *argument);
@@ -72,6 +70,15 @@ osMutexDef(Mutex_Angle);
 osMutexId angle_mutex;
 osMutexDef(Mutex_Temperature);
 osMutexId temp_mutex;
+
+// Timer defintions
+void displayCallback(void const *argument);
+void pwmCallback(void const *argument);
+
+osTimerDef (displayTimerDef, displayCallback);
+osTimerId displayTimer;
+osTimerDef (pwmTimerDef, pwmCallback);
+osTimerId pwmTimer;
 
 // Values for display
 int digit=3;
@@ -144,14 +151,32 @@ void displayThread(void const *argument){
 	
 	int flashCounter=0;
 	while(1){
-		//gets button pressed if keypad interrupt flag is set
+		
+		// Gets button pressed if keypad interrupt flag is set
 		if(keypad_flag){
-			int i = get_button_pressed();		//change state based on this
+			int i = get_button_pressed();		// Change state based on this
 		}
 		
-		
+		// Wait for a flag to be set by the timer
 		if(display_flag){
+			
+			
 			if(!flash_display){
+				
+				// Mode 0: Accelerometer mode
+				if(mode == 0){
+					osMutexWait(angle_mutex, osWaitForever);
+					value = roll;
+					osMutexRelease(angle_mutex);
+				}
+				
+				// Mode 1: Temperature mode
+				else{
+					osMutexWait(temp_mutex, osWaitForever);
+					value = temp;
+					osMutexRelease(temp_mutex);
+				}
+				
 				displayValue(value, digit, 1);
 				if(digit == 1)
 					digit = 4;
@@ -159,6 +184,8 @@ void displayThread(void const *argument){
 				interruptCounter++;
 				display_flag = 0;
 			}
+			
+			// Flash display
 			else{
 				flashCounter++;
 				if(flashCounter<100){
@@ -177,7 +204,6 @@ void displayThread(void const *argument){
 				display_flag = 0;
 			}				
 		}
-	
 	}
 }
 
@@ -198,19 +224,24 @@ int main (void) {
 	initAccelerometer();
 	initAccelerometerInterrupt();
 	
-  // create 'thread' functions that start executing,
-  // example: tid_name = osThreadCreate (osThread(name), NULL);
+  // Create threads for accelerometer, temp sensor, and display
 	accThread = osThreadCreate(osThread(accelerometerThread), NULL);
 	tempThread = osThreadCreate(osThread(temperatureThread), NULL);
 	dispThread = osThreadCreate(osThread(displayThread), NULL);
 	
+	// Create timers for the display and the pwm
+	uint32_t displayTimerType = 1;
+	uint32_t pwmTimerType = 1;
+	displayTimer = osTimerCreate (osTimer(displayTimerDef), osTimerPeriodic, &displayTimerType);
+	pwmTimer = osTimerCreate (osTimer(pwmTimerDef), osTimerPeriodic, &pwmTimerType);
+	
+	// Start timers
+	uint32_t timerDelay = 5;
+	osTimerStart (displayTimer, timerDelay); 
+	
+	
 	// Start thread execution
 	osKernelStart ();                         
-	
-	// The 7seg can display either the temperature or the tilt
-	// Mode 0: Accelerometer mode
-	//int count = 0;
-	//float referenceAngle = 0.0;
 }
 
 /**
@@ -238,41 +269,6 @@ float to_celsius(int v_sense)
 	return ((v_sense_f - 760.0) * AVG_SLOPE_INVERSE) + 25;
 }
 
-/**
-*@brief Sets the accelertometer flag when a sample can be read
-*@retval None
-*/
-void setAccelerometerFlag(void)
-{
-	accelerometerReady = 1;
-}
-
-/**
-*@brief Resets the accelerometer flag
-*@retval None
-*/
-void resetAccelerometerFlag(void)
-{
-	accelerometerReady = 0;
-}
-
-/**
-*@brief Sets the temperature flag indicating when a sample can be read
-*@retval None
-*/
-void setTemperatureFlag(void)
-{
-	temperatureReady = 1;
-}
-
-/**
-*@brief Resets the temperature flag
-*@retval None
-*/
-void resetTemperatureFlag(void)
-{
-	accelerometerReady = 0;
-}
 
 /**
 *@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
@@ -292,7 +288,19 @@ void EXTI0_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update);			// Clears incoming interrupt bit
-	display_flag = 1;
 	//setTemperatureFlag();
 	osSignalSet(tempThread, TEMP_FLAG);
+}
+
+/**
+*@brief Callback function for the display multiplexer
+*@retval None
+*/
+void displayCallback(void const *argument){
+	display_flag = 1;
+}
+
+
+void pwmCallback(void const *argument){
+	
 }
