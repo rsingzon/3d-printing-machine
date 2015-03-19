@@ -15,10 +15,10 @@
 #include "stm32f4xx_conf.h"
 
 // Function prototypes
-void initAccelerometer();
-void initAccelerometerInterrupt();
-void initIO();
-void initADC();
-void initTimer();
+void initAccelerometer(void);
+void initAccelerometerInterrupt(void);
+void initIO(void);
+void initADC(void);
+void initTimer(void);
 
 #endif

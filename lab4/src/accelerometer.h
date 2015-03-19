@@ -19,7 +19,7 @@
 #define Z_OFFSET 13.91
 
 // Function prototypes
-void readAcc(float *filteredCorrectedValues);
+void readAcc(float *filteredCorrectedValues, kalman_state *x_state, kalman_state *y_state, kalman_state *z_state);
 void adjustAccValues(float* rawValues, float *adjustedValues);
 void toAngles(float *accValues, float *angles);
 

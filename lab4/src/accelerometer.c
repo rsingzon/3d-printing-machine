@@ -7,43 +7,19 @@
 
 #include "accelerometer.h"
 
-void readAcc(float *angles){
+void readAcc(float *angles, kalman_state *x_state, kalman_state *y_state, kalman_state *z_state){
 	
 	float rawAccValues[3]; 				// Raw values
 	float adjustedAccValues[3];		// Calibrated values
-	
-	// Define kalman states for each accelerometer output
-	kalman_state x_state;
-	kalman_state y_state;
-	kalman_state z_state;
-	
-	// Assign initial values for the states
-	x_state.q = 0.05;
-	x_state.r = 1.0;
-	x_state.x = 0.0;
-	x_state.p = 0.0;
-	x_state.k = 0.0;
-	
-	y_state.q = 0.05;
-	y_state.r = 1.0;
-	y_state.x = 0.0;
-	y_state.p = 0.0;
-	y_state.k = 0.0;
-	
-	z_state.q = 0.05;
-	z_state.r = 1.0;
-	z_state.x = 0.0;
-	z_state.p = 0.0;
-	z_state.k = 0.0;
-	
+		
 	// Read accelerometer values
 	LIS3DSH_ReadACC(rawAccValues);
 	adjustAccValues(rawAccValues, adjustedAccValues);
 	
 	// Filter X, Y, and Z measurements
-	kalman_update(&x_state, adjustedAccValues[0]);
-	kalman_update(&y_state, adjustedAccValues[1]);
-	kalman_update(&z_state, adjustedAccValues[2]);
+	kalman_update(x_state, adjustedAccValues[0]);
+	kalman_update(y_state, adjustedAccValues[1]);
+	kalman_update(z_state, adjustedAccValues[2]);
 	
 	toAngles(adjustedAccValues, angles);
 	

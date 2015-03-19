@@ -16,13 +16,13 @@
 #define ROWS GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6
 
 
-float read_from_user();
-int get_button_pressed();
-char get_debounced_value();
-char get_raw_value();
-void reset_GPIO();
-void flip_GPIO();
+float read_from_user(void);
+int get_button_pressed(void);
+char get_debounced_value(void);
+char get_raw_value(void);
+void reset_GPIO(void);
+void flip_GPIO(void);
 int getValue(int column, int row);
 float char_to_float(char c);
 int char_to_int(char c);
-int buttonPressed();
+int buttonPressed(void);
