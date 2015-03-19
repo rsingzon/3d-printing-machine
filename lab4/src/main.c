@@ -123,6 +123,7 @@ void temperatureThread(void const *argument){
 	
 	float rawTemp;
 	float filteredTemp;
+	float thresholdTemp = 40.0;
 	kalman_state kstate = {15.0, 1.0, 0.0, 0.0, 0.0};
 	
 	while(1){
@@ -138,6 +139,9 @@ void temperatureThread(void const *argument){
 		osMutexWait(temp_mutex, osWaitForever);
 		temp = filteredTemp;
 		osMutexRelease(temp_mutex);
+		
+		// If the temperature of the board exceededs the threshold temperature, set the display flash flag
+		flash_display = temp > thresholdTemp ? 1 : 0;
 		
 		// Clear timer signal
 		osSignalClear(tempThread, TEMP_FLAG);
@@ -160,23 +164,22 @@ void displayThread(void const *argument){
 		// Wait for a flag to be set by the timer
 		if(display_flag){
 			
+			// Mode 0: Accelerometer mode
+			if(mode == 0){
+				osMutexWait(angle_mutex, osWaitForever);
+				value = roll;
+				osMutexRelease(angle_mutex);
+			}
+				
+			// Mode 1: Temperature mode
+			else{
+				osMutexWait(temp_mutex, osWaitForever);
+				value = temp;
+				osMutexRelease(temp_mutex);
+			}
 			
-			if(!flash_display){
-				
-				// Mode 0: Accelerometer mode
-				if(mode == 0){
-					osMutexWait(angle_mutex, osWaitForever);
-					value = roll;
-					osMutexRelease(angle_mutex);
-				}
-				
-				// Mode 1: Temperature mode
-				else{
-					osMutexWait(temp_mutex, osWaitForever);
-					value = temp;
-					osMutexRelease(temp_mutex);
-				}
-				
+			// Regular display without flashing
+			if(!flash_display){					
 				displayValue(value, digit, 1);
 				if(digit == 1)
 					digit = 4;
@@ -185,7 +188,7 @@ void displayThread(void const *argument){
 				display_flag = 0;
 			}
 			
-			// Flash display
+			// Flashing display
 			else{
 				flashCounter++;
 				if(flashCounter<100){
