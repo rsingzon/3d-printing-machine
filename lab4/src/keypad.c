@@ -41,6 +41,12 @@ float read_from_user(){
 	return value;
 }
 
+//This method returns the integer of the button if 1-4 were pressed, -1 otherwise
+int get_button_pressed(){
+	char c = get_debounced_value();
+	return char_to_int(c);
+}
+
 // This method uses a counter to debounce rising and falling edges of a raw button press
 char get_debounced_value(){
 	int db_counter=0;
@@ -233,8 +239,25 @@ float char_to_float(char c){
 		default:
 			return -1.0;
 	}
+}
+
+//this method maps keys 1-4 to corresponding integers, -1 for other keys
+int char_to_int(char c){
+		switch(c){
+			case '1':
+				return 1;
+			case '2':
+				return 2;
+			case '3':
+				return 3;
+			case '4':
+				return 4;
+			default:
+				return -1;
+		}
 	
 }
+
 int buttonPressed(){
 	if(!GPIO_ReadInputDataBit(GPIOD, COL1)){
 		return 1;

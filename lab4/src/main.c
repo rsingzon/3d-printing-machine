@@ -51,6 +51,9 @@ int accelerometerReady = 0;
 int temperatureReady = 0;
 int mode = 0;										// 0: Accelerometer, 1: Temperature
 int interruptCounter = 0;
+int keypad_flag = 0;
+int display_flag = 0;
+int flash_display = 1;				//should we flash the displayed value
 
 // Define threads 
 void accelerometerThread(void const *argument);
@@ -68,7 +71,7 @@ osMutexId temp_mutex;
 
 // Values for display
 int digit=3;
-float value = 0.00;
+float value = 69.9;
 float roll;
 float temp;
 
@@ -144,16 +147,54 @@ int main (void) {
 	
   // create 'thread' functions that start executing,
   // example: tid_name = osThreadCreate (osThread(name), NULL);
-	accThread = osThreadCreate(osThread(accelerometerThread), NULL);
+	//accThread = osThreadCreate(osThread(accelerometerThread), NULL);
 	//tempThread = osThreadCreate(osThread(temperatureThread), NULL);
 	
 	// Start thread execution
-	osKernelStart ();                         
+	//osKernelStart ();                         
 	
 	// The 7seg can display either the temperature or the tilt
 	// Mode 0: Accelerometer mode
-	int count = 0;
-	float referenceAngle = 0.0;
+	//int count = 0;
+	//float referenceAngle = 0.0;
+	
+	int flashCounter=0;
+	while(1){
+		
+		//gets button pressed if keypad interrupt flag is set
+		if(keypad_flag){
+			int i = get_button_pressed();		//change state based on this
+		}
+		
+		
+		if(display_flag){
+			if(!flash_display){
+				displayValue(value, digit, 1);
+				if(digit == 1)
+					digit = 4;
+				digit--;
+				interruptCounter++;
+				display_flag = 0;
+			}
+			else{
+				flashCounter++;
+				if(flashCounter<100){
+					displayValue(value, digit, 1);
+				}
+				else{
+					displayValue(value, digit, 0);
+				}
+				if(flashCounter>200){
+					flashCounter=0;
+				}	
+				if(digit == 1)
+					digit = 4;
+				digit--;
+				interruptCounter++;
+				display_flag = 0;
+			}				
+		}
+	}
 }
 
 /**
@@ -235,5 +276,6 @@ void EXTI0_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update);			// Clears incoming interrupt bit
+	display_flag = 1;
 	//setTemperatureFlag();
 }

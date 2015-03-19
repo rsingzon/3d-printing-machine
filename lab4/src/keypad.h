@@ -17,10 +17,12 @@
 
 
 float read_from_user();
+int get_button_pressed();
 char get_debounced_value();
 char get_raw_value();
 void reset_GPIO();
 void flip_GPIO();
 int getValue(int column, int row);
 float char_to_float(char c);
+int char_to_int(char c);
 int buttonPressed();

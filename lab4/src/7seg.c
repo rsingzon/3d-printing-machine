@@ -2,7 +2,7 @@
 
 int on_off = 0;
 
-void displayValue(float value, int digit) {
+void displayValue(float value, int digit, int flash) {
 	uint32_t digitOn;
 	int i, decimalPlace, intValue, displValue;
 	
@@ -60,7 +60,9 @@ void displayValue(float value, int digit) {
 	GPIO_WriteBit(GPIOB, all_select, Bit_SET);
 	
 	// Turn on selected digit
-	GPIO_WriteBit(GPIOB, digitOn, Bit_RESET);
+	if(flash){
+		GPIO_WriteBit(GPIOB, digitOn, Bit_RESET);
+	}
 }
 
 // Maps digit to be displayed to corresponding segments

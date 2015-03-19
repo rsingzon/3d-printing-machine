@@ -112,6 +112,26 @@ void initIO(){
 		GPIO_InitStructureE.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_Init(GPIOE, &GPIO_InitStructureE);
 		
+//		//configure interrupt for keypad
+//		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource1);	
+//		
+//		EXTI_InitTypeDef interrupt_init;
+//		interrupt_init.EXTI_Line = EXTI_Line1; 							// Use EXTI Line 01
+//		interrupt_init.EXTI_Mode = EXTI_Mode_Interrupt;     // Set the EXTI mode to interrupt
+//		interrupt_init.EXTI_Trigger = EXTI_Trigger_Falling; 	// Set the trigger to rising edge
+//		interrupt_init.EXTI_LineCmd = ENABLE;     					// Enable the EXTI line    
+//		EXTI_Init(&interrupt_init);
+//		
+//		//Enable the NVIC 
+//		NVIC_InitTypeDef NVIC_init; 
+//		
+//		NVIC_init.NVIC_IRQChannel = EXTI1_IRQn; 					//Use EXTI Line 0
+//		NVIC_init.NVIC_IRQChannelPreemptionPriority = 0; 	//Set preemption priority
+//		NVIC_init.NVIC_IRQChannelSubPriority = 1; 				//Set sub prioirity
+//		NVIC_init.NVIC_IRQChannelCmd = ENABLE; 						//Enable NVIC
+//		
+//		NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
+		
 		// Enable LED GPIOs
 		GPIO_InitTypeDef GPIO_InitStructure;
 		
