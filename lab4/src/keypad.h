@@ -8,7 +8,7 @@
 #define COL1 GPIOA
 #define COL2 GPIOD
 #define COL3 GPIOB
-#define COL4 GPIOE
+#define COL4 GPIOC
 
 
 #define ROW1 GPIO_Pin_3

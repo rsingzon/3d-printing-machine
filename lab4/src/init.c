@@ -87,8 +87,8 @@ void initIO(){
 		GPIO_InitStructureB.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_Init(GPIOB, &GPIO_InitStructureB);
 	
-		// Set pin 1, 2 as outputs for GPIOC (DP, degree symbol)
-		GPIO_InitStructureC.GPIO_Pin = GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_4;
+		// Set pin 2, 3 as outputs for GPIOC (degree symbol, DP)
+		GPIO_InitStructureC.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4;
 		GPIO_InitStructureC.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructureC.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureC.GPIO_Speed = GPIO_Speed_100MHz;
@@ -106,7 +106,7 @@ void initIO(){
 		GPIO_Init(GPIOA, &GPIO_InitStructureKeypadCol);
 		GPIO_Init(GPIOD, &GPIO_InitStructureKeypadCol);
 		GPIO_Init(GPIOB, &GPIO_InitStructureKeypadCol);
-		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadCol);
+		GPIO_Init(GPIOC, &GPIO_InitStructureKeypadCol);
 		
 		// Set Row pins of keypad
 		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;

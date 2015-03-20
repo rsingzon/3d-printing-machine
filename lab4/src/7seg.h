@@ -17,7 +17,7 @@
 #define seg_f GPIO_Pin_14
 #define seg_g GPIO_Pin_15
 
-#define seg_dp GPIO_Pin_1
+#define seg_dp GPIO_Pin_3
 
 void displayValue(float value, int digit, int flash);
 void displaySegments(int number);

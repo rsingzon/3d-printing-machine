@@ -12,7 +12,7 @@ D		PB12	Pin 3
 E		PB13	Pin 5
 F		PB14	Pin 11
 G		PB15	Pin 15
-DP		PC1	Pin 7
+DP		PC3	Pin 7		** Changed from PC1	Pin 7
 
 L3-EN		PC2	Pin 10
 L3		PC4	Pin 9
@@ -25,7 +25,7 @@ Note: 	7 seg pins start at 1 in the bottom left,
 COLUMN 7	PA1	Pin 1 		**Changed from PD0	Pin 1	
 COLUMN 6	PD1	Pin 2
 COLUMN 5	PB1	Pin 3		**Changed from PD2	Pin 3
-COLUMN 4	PE1	Pin 4		**Changed from PD3	Pin 4
+COLUMN 4	PC1	Pin 4		**Changed from PD3	Pin 4
 
 ROW 3		PE3	Pin 5
 ROW 2		PE4	Pin 6

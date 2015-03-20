@@ -280,9 +280,11 @@ void ledThreadDef(void const *argument){
  */
 int main (void) {
   osKernelInitialize ();                    // initialize CMSIS-RTOS
+		
+	printf("hello, world\n");
 	
-//	float test = read_from_user();
-//	printf("%f\n", test);
+	float test = read_from_user();
+	printf("%f\n", test);
 	
 	// Create mutexes
 	angle_mutex = osMutexCreate(osMutex (Mutex_Angle));
@@ -381,4 +383,13 @@ void displayCallback(void const *argument){
 
 void pwmCallback(void const *argument){
 	osSignalSet(ledThread, PWM_FLAG);
+}
+
+/**
+*@brief Interupt handler for EXTI1.  Informs uP that a button on the keypad has been pressed
+*@retval None
+*/
+void EXTI1_IRQHandler(void)
+{
+	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
 }

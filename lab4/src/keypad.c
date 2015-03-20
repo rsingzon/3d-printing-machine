@@ -134,7 +134,7 @@ void reset_GPIO(){
 		GPIO_Init(GPIOA, &GPIO_InitStructureCol);
 		GPIO_Init(GPIOD, &GPIO_InitStructureCol);
 		GPIO_Init(GPIOB, &GPIO_InitStructureCol);
-		GPIO_Init(GPIOE, &GPIO_InitStructureCol);	
+		GPIO_Init(GPIOC, &GPIO_InitStructureCol);	
 		
 		// Set Row pins of keypad
 		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
@@ -159,7 +159,7 @@ void flip_GPIO(){
 		GPIO_Init(GPIOA, &GPIO_InitStructureCol);
 		GPIO_Init(GPIOD, &GPIO_InitStructureCol);
 		GPIO_Init(GPIOB, &GPIO_InitStructureCol);
-		GPIO_Init(GPIOE, &GPIO_InitStructureCol);
+		GPIO_Init(GPIOC, &GPIO_InitStructureCol);
 		
 		// Set Row pins of keypad
 		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
