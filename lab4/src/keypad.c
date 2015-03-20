@@ -44,6 +44,7 @@ float read_from_user(){
 //This method returns the integer of the button if 1-4 were pressed, -1 otherwise
 int get_button_pressed(){
 	char c = get_debounced_value();
+	printf("%c\n", c);
 	return char_to_int(c);
 }
 
@@ -126,7 +127,6 @@ void reset_GPIO(){
 		// Set Column pins of keypad
 		GPIO_InitStructureCol.GPIO_Pin = GPIO_Pin_1;
 		GPIO_InitStructureCol.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructureCol.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureCol.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureCol.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStructureCol.GPIO_PuPd = GPIO_PuPd_UP;

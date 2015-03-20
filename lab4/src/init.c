@@ -74,13 +74,14 @@ void initIO(){
 		GPIO_InitTypeDef GPIO_InitStructureKeypadCol;	
 	
 		// Enable clock for GPIO busses
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	
 		// Set pins 0, 1, 4, 5, 7, 8, 11, 12, 13, 14, and 15 as output for GPIOB
-		GPIO_InitStructureB.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_3| GPIO_Pin_4| GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructureB.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_2| GPIO_Pin_4| GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
 		GPIO_InitStructureB.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructureB.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureB.GPIO_Speed = GPIO_Speed_100MHz;
@@ -88,7 +89,7 @@ void initIO(){
 		GPIO_Init(GPIOB, &GPIO_InitStructureB);
 	
 		// Set pin 2, 3 as outputs for GPIOC (degree symbol, DP)
-		GPIO_InitStructureC.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_3|GPIO_Pin_4;
+		GPIO_InitStructureC.GPIO_Pin = GPIO_Pin_2|GPIO_Pin_5|GPIO_Pin_4;
 		GPIO_InitStructureC.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructureC.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureC.GPIO_Speed = GPIO_Speed_100MHz;
@@ -98,7 +99,6 @@ void initIO(){
 		// Set PIN1 on keypad
 		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_1;
 		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureKeypadCol.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStructureKeypadCol.GPIO_PuPd = GPIO_PuPd_UP;
@@ -117,25 +117,30 @@ void initIO(){
 		GPIO_InitStructureE.GPIO_PuPd = GPIO_PuPd_UP;
 		GPIO_Init(GPIOE, &GPIO_InitStructureE);
 		
-//		//configure interrupt for keypad
-//		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource1);	
-//		
-//		EXTI_InitTypeDef interrupt_init;
-//		interrupt_init.EXTI_Line = EXTI_Line1; 							// Use EXTI Line 01
-//		interrupt_init.EXTI_Mode = EXTI_Mode_Interrupt;     // Set the EXTI mode to interrupt
-//		interrupt_init.EXTI_Trigger = EXTI_Trigger_Falling; 	// Set the trigger to rising edge
-//		interrupt_init.EXTI_LineCmd = ENABLE;     					// Enable the EXTI line    
-//		EXTI_Init(&interrupt_init);
-//		
-//		//Enable the NVIC 
-//		NVIC_InitTypeDef NVIC_init; 
-//		
-//		NVIC_init.NVIC_IRQChannel = EXTI1_IRQn; 					//Use EXTI Line 0
-//		NVIC_init.NVIC_IRQChannelPreemptionPriority = 0; 	//Set preemption priority
-//		NVIC_init.NVIC_IRQChannelSubPriority = 1; 				//Set sub prioirity
-//		NVIC_init.NVIC_IRQChannelCmd = ENABLE; 						//Enable NVIC
-//		
-//		NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
+
+		//configure interrupt for keypad
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource1);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource1);	
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource1);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource1);
+		
+		
+		EXTI_InitTypeDef kbinterrupt_init;
+		kbinterrupt_init.EXTI_Line = EXTI_Line1; 							// Use EXTI Line 01
+		kbinterrupt_init.EXTI_Mode = EXTI_Mode_Interrupt;     // Set the EXTI mode to interrupt
+		kbinterrupt_init.EXTI_Trigger = EXTI_Trigger_Falling; 	// Set the trigger to rising edge
+		kbinterrupt_init.EXTI_LineCmd = ENABLE;     					// Enable the EXTI line    
+		EXTI_Init(&kbinterrupt_init);
+		
+		//Enable the NVIC 
+		NVIC_InitTypeDef NVIC_init; 
+		
+		NVIC_init.NVIC_IRQChannel = EXTI1_IRQn; 					//Use EXTI Line 1
+		NVIC_init.NVIC_IRQChannelPreemptionPriority = 0; 	//Set preemption priority
+		NVIC_init.NVIC_IRQChannelSubPriority = 1; 				//Set sub prioirity
+		NVIC_init.NVIC_IRQChannelCmd = ENABLE; 						//Enable NVIC
+		
+		NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
 		
 		// Enable LED GPIOs
 		GPIO_InitTypeDef GPIO_InitStructure;

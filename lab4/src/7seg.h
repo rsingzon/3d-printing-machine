@@ -3,7 +3,7 @@
 #include "stm32f4xx_conf.h"
 
 #define select_1 GPIO_Pin_0
-#define select_2 GPIO_Pin_3
+#define select_2 GPIO_Pin_2
 #define select_3 GPIO_Pin_4
 #define select_4 GPIO_Pin_5
 
@@ -17,7 +17,7 @@
 #define seg_f GPIO_Pin_14
 #define seg_g GPIO_Pin_15
 
-#define seg_dp GPIO_Pin_3
+#define seg_dp GPIO_Pin_5
 
 void displayValue(float value, int digit, int flash);
 void displaySegments(int number);

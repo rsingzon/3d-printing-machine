@@ -53,6 +53,8 @@ int display_flag = 0;
 int flash_display = 0;					//should we flash the displayed value
 int active_led = 0;
 
+int currentState=0;
+
 // Thread IDs
 osThreadId accelerometerThread;
 osThreadId temperatureThread;
@@ -170,6 +172,9 @@ void displayThreadDef(void const *argument){
 		// Gets button pressed if keypad interrupt flag is set
 		if(keypad_flag){
 			int i = get_button_pressed();		// Change state based on this
+			keypad_flag=0;
+			currentState=i;
+			
 		}
 		
 		// Wait for a flag to be set by the timer
@@ -281,10 +286,6 @@ void ledThreadDef(void const *argument){
 int main (void) {
   osKernelInitialize ();                    // initialize CMSIS-RTOS
 		
-	printf("hello, world\n");
-	
-	float test = read_from_user();
-	printf("%f\n", test);
 	
 	// Create mutexes
 	angle_mutex = osMutexCreate(osMutex (Mutex_Angle));
@@ -391,5 +392,6 @@ void pwmCallback(void const *argument){
 */
 void EXTI1_IRQHandler(void)
 {
-	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
+	EXTI_ClearITPendingBit(EXTI_Line1); //Clear the EXTI1 interupt flag
+	keypad_flag=1;
 }
