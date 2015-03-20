@@ -74,7 +74,7 @@ void initIO(){
 		GPIO_InitTypeDef GPIO_InitStructureKeypadCol;	
 	
 		// Enable clock for GPIO busses
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOD, ENABLE);
@@ -97,16 +97,13 @@ void initIO(){
 		GPIO_Init(GPIOC, &GPIO_InitStructureC);
 		
 		// Set PIN1 on keypad
-		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_1;
+		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
 		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_IN;
 		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureKeypadCol.GPIO_Speed = GPIO_Speed_100MHz;
 		GPIO_InitStructureKeypadCol.GPIO_PuPd = GPIO_PuPd_UP;
 		
-		GPIO_Init(GPIOA, &GPIO_InitStructureKeypadCol);
-		GPIO_Init(GPIOD, &GPIO_InitStructureKeypadCol);
-		GPIO_Init(GPIOB, &GPIO_InitStructureKeypadCol);
-		GPIO_Init(GPIOC, &GPIO_InitStructureKeypadCol);
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadCol);
 		
 		// Set Row pins of keypad
 		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
@@ -119,28 +116,42 @@ void initIO(){
 		
 
 		//configure interrupt for keypad
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOA, EXTI_PinSource1);
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource1);	
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOB, EXTI_PinSource1);
-		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOC, EXTI_PinSource1);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOD, EXTI_PinSource2);
 		
 		
 		EXTI_InitTypeDef kbinterrupt_init;
-		kbinterrupt_init.EXTI_Line = EXTI_Line1; 							// Use EXTI Line 01
+		kbinterrupt_init.EXTI_Line = EXTI_Line2; 							// Use EXTI Line 01
 		kbinterrupt_init.EXTI_Mode = EXTI_Mode_Interrupt;     // Set the EXTI mode to interrupt
 		kbinterrupt_init.EXTI_Trigger = EXTI_Trigger_Falling; 	// Set the trigger to rising edge
 		kbinterrupt_init.EXTI_LineCmd = ENABLE;     					// Enable the EXTI line    
 		EXTI_Init(&kbinterrupt_init);
 		
+//		kbinterrupt_init.EXTI_Line = EXTI_Line2;
+//		EXTI_Init(&kbinterrupt_init);
+//		
+//		kbinterrupt_init.EXTI_Line = EXTI_Line3;
+//		EXTI_Init(&kbinterrupt_init);
+//		
+//		kbinterrupt_init.EXTI_Line = EXTI_Line6;
+//		EXTI_Init(&kbinterrupt_init);
+		
 		//Enable the NVIC 
 		NVIC_InitTypeDef NVIC_init; 
 		
-		NVIC_init.NVIC_IRQChannel = EXTI1_IRQn; 					//Use EXTI Line 1
+		NVIC_init.NVIC_IRQChannel = EXTI2_IRQn; 					//Use EXTI Line 1
 		NVIC_init.NVIC_IRQChannelPreemptionPriority = 0; 	//Set preemption priority
 		NVIC_init.NVIC_IRQChannelSubPriority = 1; 				//Set sub prioirity
 		NVIC_init.NVIC_IRQChannelCmd = ENABLE; 						//Enable NVIC
+		NVIC_Init(&NVIC_init); 														
 		
-		NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
+//		NVIC_init.NVIC_IRQChannel = EXTI2_IRQn;
+//		NVIC_Init(&NVIC_init); 
+//		
+//		NVIC_init.NVIC_IRQChannel = EXTI3_IRQn;
+//		NVIC_Init(&NVIC_init); 
+		
+		//NVIC_init.NVIC_IRQChannel = EXTI9_5_IRQn;
+		//NVIC_Init(&NVIC_init); 
 		
 		// Enable LED GPIOs
 		GPIO_InitTypeDef GPIO_InitStructure;

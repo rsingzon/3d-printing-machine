@@ -5,10 +5,11 @@
 
 #define COL GPIO_Pin_1
 
-#define COL1 GPIOA
-#define COL2 GPIOD
-#define COL3 GPIOB
-#define COL4 GPIOC
+#define COL1 GPIO_Pin_12
+#define COL2 GPIO_Pin_13
+#define COL3 GPIO_Pin_14
+#define COL4 GPIO_Pin_15
+#define COLUMNS GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15
 
 
 #define ROW1 GPIO_Pin_3

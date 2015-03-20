@@ -294,6 +294,8 @@ int main (void) {
 		
   // initialize peripherals here
 	initIO();
+	
+	
 	initADC();
 	initTimer();
 	initAccelerometer();
@@ -386,12 +388,42 @@ void pwmCallback(void const *argument){
 	osSignalSet(ledThread, PWM_FLAG);
 }
 
+///**
+//*@brief Interupt handler for EXTI1.  Informs uP that a button on the keypad has been pressed
+//*@retval None
+//*/
+//void EXTI1_IRQHandler(void)
+//{
+//	EXTI_ClearITPendingBit(EXTI_Line1); //Clear the EXTI1 interupt flag
+//	keypad_flag=1;
+//}
+
 /**
-*@brief Interupt handler for EXTI1.  Informs uP that a button on the keypad has been pressed
+*@brief Interupt handler for EXTI2.  Informs uP that a button on the keypad has been pressed
 *@retval None
 */
-void EXTI1_IRQHandler(void)
+void EXTI2_IRQHandler(void)
 {
-	EXTI_ClearITPendingBit(EXTI_Line1); //Clear the EXTI1 interupt flag
+	EXTI_ClearITPendingBit(EXTI_Line2); //Clear the EXTI1 interupt flag
 	keypad_flag=1;
 }
+
+///**
+//*@brief Interupt handler for EXTI3.  Informs uP that a button on the keypad has been pressed
+//*@retval None
+//*/
+//void EXTI3_IRQHandler(void)
+//{
+//	EXTI_ClearITPendingBit(EXTI_Line3); //Clear the EXTI1 interupt flag
+//	keypad_flag=1;
+//}
+
+///**
+//*@brief Interupt handler for EXTI1.  Informs uP that a button on the keypad has been pressed
+//*@retval None
+//*/
+//void EXTI9_5_IRQHandler(void)
+//{
+//	EXTI_ClearITPendingBit(EXTI_Line6); //Clear the EXTI1 interupt flag
+//	keypad_flag=1;
+//}
