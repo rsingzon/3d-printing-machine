@@ -42,8 +42,8 @@ void TIM3_IRQHandler(void);
 float to_celsius(int v_sense);
 static volatile uint_fast16_t ticks;
 void delay_ms(int ms);
-int readADC();
-void fadeLEDs();
+int readADC(void);
+void fadeLEDs(void);
 
 // Flags
 int mode = 1;										// 0: Accelerometer, 1: Temperature
@@ -271,7 +271,6 @@ void ledThreadDef(void const *argument){
 		else
       GPIO_ResetBits(GPIOD,activeLED);
 
-		
 		osSignalClear(ledThread, PWM_FLAG);
 	}
 }
@@ -281,6 +280,9 @@ void ledThreadDef(void const *argument){
  */
 int main (void) {
   osKernelInitialize ();                    // initialize CMSIS-RTOS
+	
+//	float test = read_from_user();
+//	printf("%f\n", test);
 	
 	// Create mutexes
 	angle_mutex = osMutexCreate(osMutex (Mutex_Angle));
@@ -312,6 +314,10 @@ int main (void) {
 	
 	uint32_t pwmDelay = 1;
 	osTimerStart (pwmTimer, pwmDelay); 	
+	
+	// Turn on degree symbol
+	GPIO_WriteBit(GPIOC, GPIO_Pin_2, Bit_RESET);
+	GPIO_WriteBit(GPIOC, GPIO_Pin_4, Bit_SET);
 	
 	// Start thread execution
 	osKernelStart ();                         

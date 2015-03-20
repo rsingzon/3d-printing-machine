@@ -65,10 +65,13 @@ void initAccelerometerInterrupt(void)
 }
 
 void initIO(){
+		
 		GPIO_InitTypeDef GPIO_InitStructureB;
 		GPIO_InitTypeDef GPIO_InitStructureC;
-		GPIO_InitTypeDef GPIO_InitStructureD;
 		GPIO_InitTypeDef GPIO_InitStructureE;
+	
+		// Init structures for keypad interrupt
+		GPIO_InitTypeDef GPIO_InitStructureKeypadCol;	
 	
 		// Enable clock for GPIO busses
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
@@ -77,7 +80,7 @@ void initIO(){
 		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
 	
 		// Set pins 0, 1, 4, 5, 7, 8, 11, 12, 13, 14, and 15 as output for GPIOB
-		GPIO_InitStructureB.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_1| GPIO_Pin_4| GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructureB.GPIO_Pin = GPIO_Pin_0 | GPIO_Pin_3| GPIO_Pin_4| GPIO_Pin_5 | GPIO_Pin_7 | GPIO_Pin_8 | GPIO_Pin_11 | GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
 		GPIO_InitStructureB.GPIO_Mode = GPIO_Mode_OUT;
 		GPIO_InitStructureB.GPIO_OType = GPIO_OType_PP;
 		GPIO_InitStructureB.GPIO_Speed = GPIO_Speed_100MHz;
@@ -92,16 +95,18 @@ void initIO(){
 		GPIO_InitStructureC.GPIO_PuPd = GPIO_PuPd_NOPULL;
 		GPIO_Init(GPIOC, &GPIO_InitStructureC);
 		
+		// Set PIN1 on keypad
+		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_1;
+		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadCol.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadCol.GPIO_PuPd = GPIO_PuPd_UP;
 		
-		// Set Column pins of keypad
-		GPIO_InitStructureD.GPIO_Pin = GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3;
-		GPIO_InitStructureD.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructureD.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureD.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureD.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructureD.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init(GPIOD, &GPIO_InitStructureD);
-		
+		GPIO_Init(GPIOA, &GPIO_InitStructureKeypadCol);
+		GPIO_Init(GPIOD, &GPIO_InitStructureKeypadCol);
+		GPIO_Init(GPIOB, &GPIO_InitStructureKeypadCol);
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadCol);
 		
 		// Set Row pins of keypad
 		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;

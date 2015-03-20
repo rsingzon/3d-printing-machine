@@ -10,6 +10,6 @@
 #define __LED_H
 
 // Function prototypes
-void fadeLEDs();
+void fadeLEDs(void);
 
 #endif

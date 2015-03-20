@@ -1,7 +1,7 @@
 *****7 SEGMENT DISPLAY*****
 
 Select 1	PB0	Pin 1
-Select 2	PB1	Pin 2
+Select 2	PB3 	Pin 2		**Changed from PB1	Pin 2
 Select 3	PB4	Pin 6
 Select 4	PB5	Pin 8
 
@@ -22,10 +22,10 @@ Note: 	7 seg pins start at 1 in the bottom left,
 
 *****KEYPAD*****
 
-COLUMN 7	PD0	Pin 1	
+COLUMN 7	PA1	Pin 1 		**Changed from PD0	Pin 1	
 COLUMN 6	PD1	Pin 2
-COLUMN 5	PD2	Pin 3
-COLUMN 4	PD3	Pin 4
+COLUMN 5	PB1	Pin 3		**Changed from PD2	Pin 3
+COLUMN 4	PE1	Pin 4		**Changed from PD3	Pin 4
 
 ROW 3		PE3	Pin 5
 ROW 2		PE4	Pin 6

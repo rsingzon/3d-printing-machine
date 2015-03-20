@@ -3,11 +3,13 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
 
-#define COL1 GPIO_Pin_0
-#define COL2 GPIO_Pin_1
-#define COL3 GPIO_Pin_2
-#define COL4 GPIO_Pin_3
-#define COLUMNS GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_2|GPIO_Pin_3
+#define COL GPIO_Pin_1
+
+#define COL1 GPIOA
+#define COL2 GPIOD
+#define COL3 GPIOB
+#define COL4 GPIOE
+
 
 #define ROW1 GPIO_Pin_3
 #define ROW2 GPIO_Pin_4

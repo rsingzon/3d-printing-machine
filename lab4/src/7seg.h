@@ -3,7 +3,7 @@
 #include "stm32f4xx_conf.h"
 
 #define select_1 GPIO_Pin_0
-#define select_2 GPIO_Pin_1
+#define select_2 GPIO_Pin_3
 #define select_3 GPIO_Pin_4
 #define select_4 GPIO_Pin_5
 
