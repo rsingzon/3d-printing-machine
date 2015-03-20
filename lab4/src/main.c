@@ -28,11 +28,8 @@
 // Define flags
 #define ACC_FLAG 0x01
 #define TEMP_FLAG 0x01
-
-// Thread IDs
-osThreadId accThread;
-osThreadId tempThread;
-osThreadId dispThread;
+#define DISPLAY_FLAG 0x01
+#define PWM_FLAG 0x01
 
 // Accelerometer/keypad function prototypes
 void setAccelerometerFlag(void);
@@ -50,26 +47,41 @@ void fadeLEDs();
 
 // Flags
 int mode = 1;										// 0: Accelerometer, 1: Temperature
-int interruptCounter = 0;
+int interruptCounter = 0;			
 int keypad_flag = 0;
 int display_flag = 0;
-int flash_display = 0;				//should we flash the displayed value
+int flash_display = 0;					//should we flash the displayed value
+int active_led = 0;
+int pwm_time = 0;
+
+// Thread IDs
+osThreadId accelerometerThread;
+osThreadId temperatureThread;
+osThreadId displayThread;
+osThreadId ledThread;
+
 
 // Define threads 
-void accelerometerThread(void const *argument);
-void temperatureThread(void const *argument);
-void displayThread(void const *argument);
+void accelerometerThreadDef(void const *argument);
+void temperatureThreadDef(void const *argument);
+void displayThreadDef(void const *argument);
+void ledThreadDef(void const *argument);
 
 // Define the thread priorities
-osThreadDef(accelerometerThread, osPriorityAboveNormal, 1, 1024);
-osThreadDef(temperatureThread, osPriorityAboveNormal, 1, 1024);
-osThreadDef(displayThread, osPriorityAboveNormal, 1, 1024);
+osThreadDef(accelerometerThreadDef, osPriorityAboveNormal, 1, 768);
+osThreadDef(temperatureThreadDef, osPriorityAboveNormal, 1, 768);
+osThreadDef(displayThreadDef, osPriorityAboveNormal, 1, 512);
+osThreadDef(ledThreadDef, osPriorityAboveNormal, 1, 768);
 
 // Mutex name definitions
 osMutexDef(Mutex_Angle);				
 osMutexId angle_mutex;
+
 osMutexDef(Mutex_Temperature);
 osMutexId temp_mutex;
+
+osMutexDef(Mutex_PWM);
+osMutexId pwm_mutex;
 
 // Timer defintions
 void displayCallback(void const *argument);
@@ -92,7 +104,7 @@ float targetAngle = 45;
 /**
 *@brief Thread to read accelerometer values
 */
-void accelerometerThread(void const *argument){
+void accelerometerThreadDef(void const *argument){
 	float angles[2];
 	// Define kalman states for each accelerometer output
 	kalman_state x_state = {0.05, 0.981, 0.0, 0.0, 0.0};
@@ -112,14 +124,14 @@ void accelerometerThread(void const *argument){
 		roll = angles[0];	
 		osMutexRelease(angle_mutex);
 		
-		osSignalClear(accThread, ACC_FLAG);
+		osSignalClear(accelerometerThread, ACC_FLAG);
 	}
 }
 
 /**
 *@brief Thread to read temperature values
 */
-void temperatureThread(void const *argument){
+void temperatureThreadDef(void const *argument){
 	
 	float rawTemp;
 	float filteredTemp;
@@ -144,14 +156,14 @@ void temperatureThread(void const *argument){
 		flash_display = temp > thresholdTemp ? 1 : 0;
 		
 		// Clear timer signal
-		osSignalClear(tempThread, TEMP_FLAG);
+		osSignalClear(temperatureThread, TEMP_FLAG);
 	}
 }
 
 /**
 *@brief Thread to display values on the 7seg
 */
-void displayThread(void const *argument){
+void displayThreadDef(void const *argument){
 	
 	int flashCounter=0;
 	while(1){
@@ -162,7 +174,7 @@ void displayThread(void const *argument){
 		}
 		
 		// Wait for a flag to be set by the timer
-		if(display_flag){
+			osSignalWait(DISPLAY_FLAG, osWaitForever);
 			
 			// Mode 0: Accelerometer mode
 			if(mode == 0){
@@ -205,8 +217,71 @@ void displayThread(void const *argument){
 				digit--;
 				interruptCounter++;
 				display_flag = 0;
-			}				
+			}	
+
+			osSignalClear(displayThread, DISPLAY_FLAG);
+	}
+}
+
+
+/**
+*@brief Thread to control the brightness of the LEDs
+*/
+void ledThreadDef(void const *argument){
+		
+	uint16_t activeLED;
+	
+	while(1){
+		
+		osSignalWait(PWM_FLAG, osWaitForever);
+		pwm_time++;
+
+		
+		// Turn off all LEDs
+		//GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+				
+		// Change the active LED to the one that is flagged
+		if(active_led == 0){
+			activeLED = GPIO_Pin_12;
+		} else if(active_led == 1){
+			activeLED = GPIO_Pin_13;
+		} else if(active_led == 2){
+			activeLED = GPIO_Pin_14;
+		} else if(active_led == 3){
+			activeLED = GPIO_Pin_15;
+		} 		
+	
+
+		if (pwm_time > 25) pwm_time=0;
+		if (pwm_time > 15)
+      GPIO_SetBits(GPIOD,activeLED); 
+		else
+      GPIO_ResetBits(GPIOD,activeLED);
+
+
+			
+		/*
+		// The fade method uses the clock to count the period
+		// Core clock = 168MHz
+		int period = 7500;
+		int dutyCycle;
+		int count = 0;
+		
+		// Fade in LEDs
+		for (dutyCycle = 0; dutyCycle < 2500; dutyCycle++) {
+			while (count < dutyCycle) {
+				GPIO_SetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15); 
+				count++;
+			}
+			while (count < period){
+				GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+				count++;
+			}
+			count = 0;
 		}
+		*/
+		
+		osSignalClear(ledThread, PWM_FLAG);
 	}
 }
 
@@ -219,6 +294,7 @@ int main (void) {
 	// Create mutexes
 	angle_mutex = osMutexCreate(osMutex (Mutex_Angle));
 	temp_mutex = osMutexCreate(osMutex (Mutex_Temperature));
+	pwm_mutex = osMutexCreate(osMutex (Mutex_PWM));
 		
   // initialize peripherals here
 	initIO();
@@ -228,9 +304,10 @@ int main (void) {
 	initAccelerometerInterrupt();
 	
   // Create threads for accelerometer, temp sensor, and display
-	accThread = osThreadCreate(osThread(accelerometerThread), NULL);
-	tempThread = osThreadCreate(osThread(temperatureThread), NULL);
-	dispThread = osThreadCreate(osThread(displayThread), NULL);
+	accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
+	temperatureThread = osThreadCreate(osThread(temperatureThreadDef), NULL);
+	displayThread = osThreadCreate(osThread(displayThreadDef), NULL);
+	ledThread = osThreadCreate(osThread(ledThreadDef), NULL);
 	
 	// Create timers for the display and the pwm
 	uint32_t displayTimerType = 1;
@@ -239,9 +316,11 @@ int main (void) {
 	pwmTimer = osTimerCreate (osTimer(pwmTimerDef), osTimerPeriodic, &pwmTimerType);
 	
 	// Start timers
-	uint32_t timerDelay = 5;
-	osTimerStart (displayTimer, timerDelay); 
+	uint32_t displayDelay = 5;
+	osTimerStart (displayTimer, displayDelay); 
 	
+	uint32_t pwmDelay = 1;
+	osTimerStart (pwmTimer, pwmDelay); 	
 	
 	// Start thread execution
 	osKernelStart ();                         
@@ -279,8 +358,7 @@ float to_celsius(int v_sense)
 */
 void EXTI0_IRQHandler(void)
 {
-	//setAccelerometerFlag(); 						//Set the flag
-	osSignalSet(accThread, ACC_FLAG);			// Set a signal for the accelerometer thread
+	osSignalSet(accelerometerThread, ACC_FLAG);			// Set a signal for the accelerometer thread
 	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
 }
 
@@ -291,8 +369,7 @@ void EXTI0_IRQHandler(void)
 void TIM3_IRQHandler(void)
 {
 	TIM_ClearITPendingBit(TIM3, TIM_IT_Update);			// Clears incoming interrupt bit
-	//setTemperatureFlag();
-	osSignalSet(tempThread, TEMP_FLAG);
+	osSignalSet(temperatureThread, TEMP_FLAG);
 }
 
 /**
@@ -300,10 +377,11 @@ void TIM3_IRQHandler(void)
 *@retval None
 */
 void displayCallback(void const *argument){
-	display_flag = 1;
+	//display_flag = 1;
+	osSignalSet(displayThread, DISPLAY_FLAG);
 }
 
 
 void pwmCallback(void const *argument){
-	
+	osSignalSet(ledThread, PWM_FLAG);
 }
