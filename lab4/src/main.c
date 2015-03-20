@@ -52,7 +52,6 @@ int keypad_flag = 0;
 int display_flag = 0;
 int flash_display = 0;					//should we flash the displayed value
 int active_led = 0;
-int pwm_time = 0;
 
 // Thread IDs
 osThreadId accelerometerThread;
@@ -230,16 +229,16 @@ void displayThreadDef(void const *argument){
 void ledThreadDef(void const *argument){
 		
 	uint16_t activeLED;
+	int pwm_time = 0;
+	int brightness;
+	float angle;
+	float fraction;
 	
 	while(1){
 		
 		osSignalWait(PWM_FLAG, osWaitForever);
 		pwm_time++;
 
-		
-		// Turn off all LEDs
-		//GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-				
 		// Change the active LED to the one that is flagged
 		if(active_led == 0){
 			activeLED = GPIO_Pin_12;
@@ -250,36 +249,28 @@ void ledThreadDef(void const *argument){
 		} else if(active_led == 3){
 			activeLED = GPIO_Pin_15;
 		} 		
-	
+		
+		// Convert the angle into a brightness
+		osMutexWait(angle_mutex, osWaitForever);
+		angle = roll;
+		osMutexRelease(angle_mutex);
+		
+		// Remove negative from angle
+		if(angle < 0)
+			angle = angle * -1;
 
+		fraction = angle / 90;
+		
+		// 90 degrees --> max brightness
+		// 0 degrees  --> min brightness
+		brightness = (int) ceil(fraction * 25);
+	
 		if (pwm_time > 25) pwm_time=0;
-		if (pwm_time > 15)
+		if (pwm_time < brightness)
       GPIO_SetBits(GPIOD,activeLED); 
 		else
       GPIO_ResetBits(GPIOD,activeLED);
 
-
-			
-		/*
-		// The fade method uses the clock to count the period
-		// Core clock = 168MHz
-		int period = 7500;
-		int dutyCycle;
-		int count = 0;
-		
-		// Fade in LEDs
-		for (dutyCycle = 0; dutyCycle < 2500; dutyCycle++) {
-			while (count < dutyCycle) {
-				GPIO_SetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15); 
-				count++;
-			}
-			while (count < period){
-				GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
-				count++;
-			}
-			count = 0;
-		}
-		*/
 		
 		osSignalClear(ledThread, PWM_FLAG);
 	}
