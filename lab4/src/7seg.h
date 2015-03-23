@@ -7,7 +7,7 @@
 #define select_3 GPIO_Pin_4
 #define select_4 GPIO_Pin_5
 
-#define all_select GPIO_Pin_0|GPIO_Pin_1|GPIO_Pin_4|GPIO_Pin_5
+#define all_select GPIO_Pin_0|GPIO_Pin_2|GPIO_Pin_4|GPIO_Pin_5
 
 #define seg_a GPIO_Pin_7
 #define seg_b GPIO_Pin_8
