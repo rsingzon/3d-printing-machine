@@ -23,20 +23,20 @@ void readAcc(float *angles, kalman_state *x_state, kalman_state *y_state, kalman
 	
 	toAngles(adjustedAccValues, angles);
 	
-	
-	printf("Raw values\n");
-	printf("X: %f\n", rawAccValues[0]);
-	printf("Y: %f\n", rawAccValues[1]);
-	printf("Z: %f\n\n", rawAccValues[2]);
-		
-	printf("Adjusted values\n");
-	printf("X: %f\n", adjustedAccValues[0]);
-	printf("Y: %f\n", adjustedAccValues[1]);
-	printf("Z: %f\n\n", adjustedAccValues[2]);
-				
-	printf("Roll: %f\n", angles[0]);
-	printf("Pitch: %f\n\n", angles[1]);
-	
+//	
+//	printf("Raw values\n");
+//	printf("X: %f\n", rawAccValues[0]);
+//	printf("Y: %f\n", rawAccValues[1]);
+//	printf("Z: %f\n\n", rawAccValues[2]);
+//		
+//	printf("Adjusted values\n");
+//	printf("X: %f\n", adjustedAccValues[0]);
+//	printf("Y: %f\n", adjustedAccValues[1]);
+//	printf("Z: %f\n\n", adjustedAccValues[2]);
+//				
+//	printf("Roll: %f\n", angles[0]);
+//	printf("Pitch: %f\n\n", angles[1]);
+//	
 	
 }
 

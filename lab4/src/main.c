@@ -127,9 +127,9 @@ void accelerometerThreadDef(void const *argument){
 		readAcc(angles, &x_state, &y_state, &z_state);
 			
 		// Wait for angle mutex before setting the angle
-		osMutexWait(angle_mutex, osWaitForever);
+		//osMutexWait(angle_mutex, osWaitForever);
 		roll = angles[0];	
-		osMutexRelease(angle_mutex);
+		//osMutexRelease(angle_mutex);
 		
 		osSignalClear(accelerometerThread, ACC_FLAG);
 	}
