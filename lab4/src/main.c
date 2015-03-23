@@ -30,6 +30,7 @@
 #define TEMP_FLAG 0x01
 #define DISPLAY_FLAG 0x01
 #define PWM_FLAG 0x01
+#define KEYPAD_FLAG 0x01
 
 // Accelerometer/keypad function prototypes
 void setAccelerometerFlag(void);
@@ -45,21 +46,23 @@ void delay_ms(int ms);
 int readADC(void);
 void fadeLEDs(void);
 
+// Additional prototypes
+void switch_mode();
+
 // Flags
-int mode = 1;										// 0: Accelerometer, 1: Temperature
-int interruptCounter = 0;			
-int keypad_flag = 0;
-int display_flag = 0;
+int mode = 1;										// 0: Accelerometer, 1: Temperature			
+int interruptCounter;
+int display_flag;
 int flash_display = 0;					//should we flash the displayed value
 int active_led = 0;
 
-int currentState=0;
 
 // Thread IDs
 osThreadId accelerometerThread;
 osThreadId temperatureThread;
 osThreadId displayThread;
 osThreadId ledThread;
+osThreadId keypadThread;
 
 
 // Define threads 
@@ -67,12 +70,14 @@ void accelerometerThreadDef(void const *argument);
 void temperatureThreadDef(void const *argument);
 void displayThreadDef(void const *argument);
 void ledThreadDef(void const *argument);
+void keypadThreadDef(void const *argument);
 
 // Define the thread priorities
 osThreadDef(accelerometerThreadDef, osPriorityAboveNormal, 1, 768);
 osThreadDef(temperatureThreadDef, osPriorityAboveNormal, 1, 768);
 osThreadDef(displayThreadDef, osPriorityAboveNormal, 1, 512);
 osThreadDef(ledThreadDef, osPriorityAboveNormal, 1, 768);
+osThreadDef(keypadThreadDef, osPriorityAboveNormal, 1, 512);
 
 // Mutex name definitions
 osMutexDef(Mutex_Angle);				
@@ -95,9 +100,10 @@ osTimerId pwmTimer;
 
 // Values for display
 int digit=3;
-float value = 0;
 float roll;
 float temp;
+
+float value;
 
 // Initialize variables used by the threads
 float targetAngle = 45;
@@ -167,15 +173,11 @@ void temperatureThreadDef(void const *argument){
 void displayThreadDef(void const *argument){
 	
 	int flashCounter=0;
+	value = 0;
+	float referenceValue;
+	float displayedValue;
+	float threshold = 0.5;
 	while(1){
-		
-		// Gets button pressed if keypad interrupt flag is set
-		if(keypad_flag){
-			int i = get_button_pressed();		// Change state based on this
-			keypad_flag=0;
-			currentState=i;
-			
-		}
 		
 		// Wait for a flag to be set by the timer
 			osSignalWait(DISPLAY_FLAG, osWaitForever);
@@ -193,25 +195,30 @@ void displayThreadDef(void const *argument){
 				value = temp;
 				osMutexRelease(temp_mutex);
 			}
+						
+			// Check if the change in value exceeds a threshold
+			if(abs(value - referenceValue) > threshold){
+				displayedValue = value;
+				referenceValue = value;
+			}
 			
 			// Regular display without flashing
 			if(!flash_display){					
-				displayValue(value, digit, 1);
+				displayValue(displayedValue, digit, 1);
 				if(digit == 1)
 					digit = 4;
 				digit--;
 				interruptCounter++;
-				display_flag = 0;
 			}
 			
 			// Flashing display
 			else{
 				flashCounter++;
 				if(flashCounter<100){
-					displayValue(value, digit, 1);
+					displayValue(displayedValue, digit, 1);
 				}
 				else{
-					displayValue(value, digit, 0);
+					displayValue(displayedValue, digit, 0);
 				}
 				if(flashCounter>200){
 					flashCounter=0;
@@ -220,7 +227,6 @@ void displayThreadDef(void const *argument){
 					digit = 4;
 				digit--;
 				interruptCounter++;
-				display_flag = 0;
 			}	
 
 			osSignalClear(displayThread, DISPLAY_FLAG);
@@ -277,13 +283,33 @@ void ledThreadDef(void const *argument){
       GPIO_ResetBits(GPIOD,activeLED);
 
 		osSignalClear(ledThread, PWM_FLAG);
+	
+	}
+}
+
+/**
+*@brief Thread to control keypad scanning/mode switching
+*/
+void keypadThreadDef(void const *argument){
+	while(1){
+		osSignalWait(KEYPAD_FLAG, osWaitForever);
+		int i = get_button_pressed();
+		if(i>0 && i<5) {
+			active_led=i-1;
+			GPIO_ResetBits(GPIOD,GPIO_Pin_12|GPIO_Pin_13|GPIO_Pin_14|GPIO_Pin_15);
+		}
+		
+		if(i==5){
+			switch_mode();
+		}
+		osSignalClear(keypadThread, KEYPAD_FLAG);
 	}
 }
 
 /*
  * main: initialize and start the system
  */
-int main (void) {
+int main (void){
   osKernelInitialize ();                    // initialize CMSIS-RTOS
 		
 	
@@ -295,6 +321,7 @@ int main (void) {
   // initialize peripherals here
 	initIO();
 	
+	initKeypad();
 	
 	initADC();
 	initTimer();
@@ -306,6 +333,7 @@ int main (void) {
 	temperatureThread = osThreadCreate(osThread(temperatureThreadDef), NULL);
 	displayThread = osThreadCreate(osThread(displayThreadDef), NULL);
 	ledThread = osThreadCreate(osThread(ledThreadDef), NULL);
+	keypadThread = osThreadCreate(osThread(keypadThreadDef), NULL);
 	
 	// Create timers for the display and the pwm
 	uint32_t displayTimerType = 1;
@@ -325,7 +353,7 @@ int main (void) {
 	GPIO_WriteBit(GPIOC, GPIO_Pin_4, Bit_SET);
 	
 	// Start thread execution
-	osKernelStart ();                         
+	osKernelStart ();     
 }
 
 /**
@@ -353,6 +381,18 @@ float to_celsius(int v_sense)
 	return ((v_sense_f - 760.0) * AVG_SLOPE_INVERSE) + 25;
 }
 
+/**
+* @brief Switches from temperature to accelerometer mode, or accelerometer to temperature
+* @retval None
+*/
+void switch_mode(){
+	if (mode==1){
+		mode=0;
+		return;
+	}
+	mode=1;
+	return;
+}
 
 /**
 *@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
@@ -388,42 +428,15 @@ void pwmCallback(void const *argument){
 	osSignalSet(ledThread, PWM_FLAG);
 }
 
-///**
-//*@brief Interupt handler for EXTI1.  Informs uP that a button on the keypad has been pressed
-//*@retval None
-//*/
-//void EXTI1_IRQHandler(void)
-//{
-//	EXTI_ClearITPendingBit(EXTI_Line1); //Clear the EXTI1 interupt flag
-//	keypad_flag=1;
-//}
+
 
 /**
-*@brief Interupt handler for EXTI2.  Informs uP that a button on the keypad has been pressed
+*@brief Interupt handler for EXTI10 to EXTI15.  Informs uP that a button on the keypad has been pressed
 *@retval None
 */
-void EXTI2_IRQHandler(void)
+void EXTI15_10_IRQHandler(void)
 {
-	EXTI_ClearITPendingBit(EXTI_Line2); //Clear the EXTI1 interupt flag
-	keypad_flag=1;
+	EXTI_ClearITPendingBit(EXTI_Line12|EXTI_Line13|EXTI_Line14|EXTI_Line15);
+	osSignalSet(keypadThread, KEYPAD_FLAG);
 }
 
-///**
-//*@brief Interupt handler for EXTI3.  Informs uP that a button on the keypad has been pressed
-//*@retval None
-//*/
-//void EXTI3_IRQHandler(void)
-//{
-//	EXTI_ClearITPendingBit(EXTI_Line3); //Clear the EXTI1 interupt flag
-//	keypad_flag=1;
-//}
-
-///**
-//*@brief Interupt handler for EXTI1.  Informs uP that a button on the keypad has been pressed
-//*@retval None
-//*/
-//void EXTI9_5_IRQHandler(void)
-//{
-//	EXTI_ClearITPendingBit(EXTI_Line6); //Clear the EXTI1 interupt flag
-//	keypad_flag=1;
-//}

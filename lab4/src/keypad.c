@@ -1,166 +1,168 @@
 
 #include "keypad.h"
 
-GPIO_InitTypeDef GPIO_InitStructureCol;
-GPIO_InitTypeDef GPIO_InitStructureE;
+// Init structures for keypad interrupt
+GPIO_InitTypeDef GPIO_InitStructureKeypadCol;	
+GPIO_InitTypeDef GPIO_InitStructureKeypadRow;
 
 
-// This method gets the input from the user and returns a float
-// with the last 3 user entered digits, once enter(D) is pressed
-float read_from_user(){
-	float value = 0.0;
-	float current;
-	int character_number=0;
-	while(1){
-		char c = get_debounced_value();
-		while(char_to_float(c)<0) {c = get_debounced_value();}
-		current = char_to_float(c);
-		if(current==10.0)
-			break;
-		else if(character_number==0){
-			value += current;
-			character_number++;
-		}
-		else if(character_number==1){
-			value *=10.0;
-			value += current;
-			character_number++;
-		}
-		else if(character_number==2){
-			value *=10.0;
-			value += current;
-			character_number++;
-		}
-		else{
-			int temp = (int) value;
-			temp = temp % 100;
-			value = (float) temp;
-			value *=10.0;
-			value+=current;			
-		}
-	}
-	return value;
+void initKeypad(){
+	
+		//enable clock for GPIOE
+		RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOE, ENABLE);
+		
+		//enable clock for SYSCFG
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_SYSCFG, ENABLE);
+	
+		// Set PIN1 on keypad
+		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadCol.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadCol.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadCol);
+		
+		// Set Row pins of keypad
+		GPIO_InitStructureKeypadRow.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
+		GPIO_InitStructureKeypadRow.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructureKeypadRow.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadRow.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadRow.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadRow);
+		
+
+		//configure interrupts for keypad columns
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource12);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource13);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource14);
+		SYSCFG_EXTILineConfig(EXTI_PortSourceGPIOE, EXTI_PinSource15);
+		
+		
+		EXTI_InitTypeDef kbinterrupt_init;
+		kbinterrupt_init.EXTI_Line = EXTI_Line12 | EXTI_Line13 | EXTI_Line14 | EXTI_Line15; 						// Use pins 12-15
+		kbinterrupt_init.EXTI_Mode = EXTI_Mode_Interrupt;     // Set the EXTI mode to interrupt
+		kbinterrupt_init.EXTI_Trigger = EXTI_Trigger_Falling; 	// Set the trigger to rising edge
+		kbinterrupt_init.EXTI_LineCmd = ENABLE;     					// Enable the EXTI line    
+		EXTI_Init(&kbinterrupt_init);
+		
+		//Enable the NVIC 
+		NVIC_InitTypeDef NVIC_init; 
+		
+		NVIC_init.NVIC_IRQChannel = EXTI15_10_IRQn; 					//Use EXTI Line 12-15
+		NVIC_init.NVIC_IRQChannelPreemptionPriority = 0; 	//Set preemption priority
+		NVIC_init.NVIC_IRQChannelSubPriority = 1; 				//Set sub prioirity
+		NVIC_init.NVIC_IRQChannelCmd = ENABLE; 						//Enable NVIC
+		NVIC_Init(&NVIC_init); 														
+		
+		GPIO_WriteBit(GPIOE, ROWS, Bit_RESET);
 }
 
 //This method returns the integer of the button if 1-4 were pressed, -1 otherwise
 int get_button_pressed(){
-	char c = get_debounced_value();
-	printf("%c\n", c);
-	return char_to_int(c);
-}
-
-// This method uses a counter to debounce rising and falling edges of a raw button press
-char get_debounced_value(){
-	int db_counter=0;
-	char c = get_raw_value();
-	while(1){
-		if(get_raw_value()==c){
-			if(db_counter>8000){
-				break;
-			}
-			else{
-				db_counter++;
-			}
-		}
-		else{
-			c = get_raw_value();
-			db_counter = 0;
-		}
+	if(getColumn()==-1){
+		return 0;
 	}
-	db_counter=0;
-	while(db_counter<1000){
-		if(!buttonPressed()){
-			db_counter++;
-		}
-		else{
-			db_counter=0;
-		}
-	}
-	return c;
-}
-
-// Polls row and columns to resolve which button is pressed
-char get_raw_value(){
-	int foundColumn=0;
-	int column, row;
-	GPIO_WriteBit(GPIOE, ROWS, Bit_RESET);
-	while(!foundColumn){
-		
-		if(!GPIO_ReadInputDataBit(GPIOE, COL1)){
-			column = 1;
-			foundColumn=1;
-		}
-		else if(!GPIO_ReadInputDataBit(GPIOE, COL2)){
-			column = 2;
-			foundColumn = 1;
-		}
-		else if(!GPIO_ReadInputDataBit(GPIOE, COL3)){
-			column = 3;
-			foundColumn = 1;
-		}
-		else if(!GPIO_ReadInputDataBit(GPIOE, COL4)){
-			column = 4;
-			foundColumn = 1;
-		}
-	}
+	int col = getColumn();
 	flip_GPIO();
-	GPIO_WriteBit(GPIOE, COLUMNS, Bit_RESET);
-	if(!GPIO_ReadInputDataBit(GPIOE, ROW1)){
-		row=1;
+	
+	if(getRow()==-1){
+		reset_GPIO();
+		return 0;
 	}
-	else if(!GPIO_ReadInputDataBit(GPIOE, ROW2)){
-		row=2;
-	}
-	else if(!GPIO_ReadInputDataBit(GPIOE, ROW3)){
-		row=3;
-	}
-	else if(!GPIO_ReadInputDataBit(GPIOE, ROW4)){
-		row=4;
+	
+	int row = getRow();
+	
+	int dbCounter=0;
+	while(dbCounter<500){dbCounter++;}
+	if(getRow()!=row){
+		reset_GPIO();
+		return 0;
 	}
 	reset_GPIO();
-	return getValue(column, row);
+	
+	char c = getValue(col, row);
+	
+	return char_to_int(c);
+	
+}
+
+
+int getColumn(){
+	if(!GPIO_ReadInputDataBit(GPIOE, COL1)){
+			return 1;
+	}
+	if(!GPIO_ReadInputDataBit(GPIOE, COL2)){
+			return 2;
+	}
+	if(!GPIO_ReadInputDataBit(GPIOE, COL3)){
+		return 3;
+	}
+	if(!GPIO_ReadInputDataBit(GPIOE, COL4)){
+		return 4;
+	}
+	else{
+		return -1;
+	}
+}
+
+int getRow(){
+	if(!GPIO_ReadInputDataBit(GPIOE, ROW1)){
+			return 1;
+	}
+	if(!GPIO_ReadInputDataBit(GPIOE, ROW2)){
+			return 2;
+	}
+	if(!GPIO_ReadInputDataBit(GPIOE, ROW3)){
+		return 3;
+	}
+	if(!GPIO_ReadInputDataBit(GPIOE, ROW4)){
+		return 4;
+	}
+	else{
+		return -1;
+	}
+	
 }
 
 // Resets Column/Row GPIO's to initial configuration
 void reset_GPIO(){
-		// Set Column pins of keypad
-		GPIO_InitStructureCol.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_1 | GPIO_Pin_3 | GPIO_Pin_6;
-		GPIO_InitStructureCol.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructureCol.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureCol.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructureCol.GPIO_PuPd = GPIO_PuPd_UP;
-		
-		GPIO_Init(GPIOE, &GPIO_InitStructureCol);
+		// Set PIN1 on keypad
+		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadCol.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadCol.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadCol);
 		
 		// Set Row pins of keypad
-		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
-		GPIO_InitStructureE.GPIO_Mode = GPIO_Mode_OUT;
-		GPIO_InitStructureE.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureE.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureE.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructureE.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init(GPIOE, &GPIO_InitStructureE);
+		GPIO_InitStructureKeypadRow.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
+		GPIO_InitStructureKeypadRow.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructureKeypadRow.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadRow.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadRow.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadRow);
+	
+		GPIO_WriteBit(GPIOE, ROWS, Bit_RESET);
 }
 
 // Flip column to output and rows to input
 void flip_GPIO(){
-			// Set Column pins of keypad
-		GPIO_InitStructureCol.GPIO_Pin = GPIO_Pin_2 | GPIO_Pin_1 | GPIO_Pin_3 | GPIO_Pin_6;
-		GPIO_InitStructureCol.GPIO_Mode = GPIO_Mode_OUT;
-		GPIO_InitStructureCol.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureCol.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructureCol.GPIO_PuPd = GPIO_PuPd_UP;
-		
-		GPIO_Init(GPIOE, &GPIO_InitStructureCol);
+		GPIO_InitStructureKeypadCol.GPIO_Pin = GPIO_Pin_12 | GPIO_Pin_13 | GPIO_Pin_14 | GPIO_Pin_15;
+		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_OUT;
+		GPIO_InitStructureKeypadCol.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadCol.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadCol.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadCol);
 		
 		// Set Row pins of keypad
-		GPIO_InitStructureE.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
-		GPIO_InitStructureE.GPIO_Mode = GPIO_Mode_IN;
-		GPIO_InitStructureE.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureE.GPIO_OType = GPIO_OType_PP;
-		GPIO_InitStructureE.GPIO_Speed = GPIO_Speed_100MHz;
-		GPIO_InitStructureE.GPIO_PuPd = GPIO_PuPd_UP;
-		GPIO_Init(GPIOE, &GPIO_InitStructureE);
+		GPIO_InitStructureKeypadRow.GPIO_Pin = GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6;
+		GPIO_InitStructureKeypadRow.GPIO_Mode = GPIO_Mode_IN;
+		GPIO_InitStructureKeypadRow.GPIO_OType = GPIO_OType_PP;
+		GPIO_InitStructureKeypadRow.GPIO_Speed = GPIO_Speed_100MHz;
+		GPIO_InitStructureKeypadRow.GPIO_PuPd = GPIO_PuPd_UP;
+		GPIO_Init(GPIOE, &GPIO_InitStructureKeypadRow);
+	
+		GPIO_WriteBit(GPIOE, COLUMNS, Bit_RESET);
 }
 
 // Maps row, column combinations to character corresponding to that key
@@ -245,14 +247,16 @@ float char_to_float(char c){
 //this method maps keys 1-4 to corresponding integers, -1 for other keys
 int char_to_int(char c){
 		switch(c){
-			case '1':
-				return 1;
-			case '2':
-				return 2;
-			case '3':
-				return 3;
 			case '4':
+				return 1;
+			case '5':
+				return 2;
+			case '6':
+				return 3;
+			case '7':
 				return 4;
+			case 'D':
+				return 5;
 			default:
 				return -1;
 		}

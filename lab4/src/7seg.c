@@ -36,10 +36,6 @@ void displayValue(float value, int digit, int flash) {
 		digitOn = select_3;
 	}
 	
-//	else {
-//		digitOn = select_4;
-//	}
-	
 // Select appropriate digit of value
 	for(i=3; i>digit;i--){
 		intValue = intValue / 10;

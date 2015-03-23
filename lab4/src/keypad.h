@@ -3,7 +3,6 @@
 #include "stm32f4xx.h"
 #include "stm32f4xx_conf.h"
 
-#define COL GPIO_Pin_1
 
 #define COL1 GPIO_Pin_12
 #define COL2 GPIO_Pin_13
@@ -19,10 +18,10 @@
 #define ROWS GPIO_Pin_3|GPIO_Pin_4|GPIO_Pin_5|GPIO_Pin_6
 
 
-float read_from_user(void);
+void initKeypad();
 int get_button_pressed(void);
-char get_debounced_value(void);
-char get_raw_value(void);
+int getColumn();
+int getRow();
 void reset_GPIO(void);
 void flip_GPIO(void);
 int getValue(int column, int row);
