@@ -1,0 +1,6 @@
+Pinout
+
+PA13 - Chip select
+PA9  - 
+PC9  -
+PC7  -
