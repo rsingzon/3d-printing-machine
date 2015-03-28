@@ -10,15 +10,22 @@
 
 #include "spi.h"
 
+__IO uint32_t  CC2500Timeout = CC2500_FLAG_TIMEOUT; 
+
 void init_SPI1(void){
 	GPIO_InitTypeDef GPIO_InitStruct_A;
 	SPI_InitTypeDef SPI_InitStruct;
 	
-	// enable clock for used IO pins
+	// Enable GPIO clock
 	RCC_AHB1PeriphClockCmd(CC2500_GPIO_CLK, ENABLE);
 
-	// enable peripheral clock
+	// Enable SPI clock
 	RCC_APB2PeriphClockCmd(CC2500_SPI_CLK, ENABLE);
+	
+	// Connect SPI1 pins to SPI alternate function
+	GPIO_PinAFConfig(GPIOA, CC2500_SCK_SOURCE, CC2500_AF_SPI);
+	GPIO_PinAFConfig(GPIOA, CC2500_MISO_SOURCE, CC2500_AF_SPI);
+	GPIO_PinAFConfig(GPIOA, CC2500_MOSI_SOURCE, CC2500_AF_SPI);
 	
 	/* configure pins used by SPI1
 	* PA3 = Chip select
@@ -26,45 +33,117 @@ void init_SPI1(void){
 	* PA6 = MISO
 	* PA7 = MOSI
 	*/
-	GPIO_InitStruct_A.GPIO_Pin = CC2500_SCI_SCK | CC2500_SCI_MISO | CC2500_SCI_MOSI;
+	GPIO_InitStruct_A.GPIO_Pin = CC2500_SPI_SCK | CC2500_SPI_MISO | CC2500_SPI_MOSI;
 	GPIO_InitStruct_A.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStruct_A.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct_A.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct_A.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOA, &GPIO_InitStruct_A);
+	GPIO_Init(GPIOA, &GPIO_InitStruct_A);	
 	
-	// connect SPI1 pins to SPI alternate function
-	GPIO_PinAFConfig(GPIOA, CC2500_SCK_SOURCE, CC2500_AF_SPI);
-	GPIO_PinAFConfig(GPIOA, CC2500_MISO_SOURCE, CC2500_AF_SPI);
-	GPIO_PinAFConfig(GPIOA, CC2500_MOSI_SOURCE, CC2500_AF_SPI);
+	// Set chip select high
+	// GPIOA->BSRRL |= CC2500_SCI_CS; 
 	
-	// Configure the chip select pin
-	GPIO_InitStruct_A.GPIO_Pin = CC2500_SCI_CS;
+	// Deinitialize previous SPI configurations
+	SPI_I2S_DeInit(CC2500_SPI);
+	
+	// Configure SPI
+	SPI_InitStruct.SPI_Direction = SPI_Direction_2Lines_FullDuplex; // Full duplex mode
+	SPI_InitStruct.SPI_DataSize = SPI_DataSize_8b; 									// 8 bits per packet
+	SPI_InitStruct.SPI_CPOL = SPI_CPOL_Low; 												// clock is low when idle
+	SPI_InitStruct.SPI_CPHA = SPI_CPHA_1Edge;											 	// Data sampled at first edge
+	SPI_InitStruct.SPI_NSS = SPI_NSS_Soft | SPI_NSSInternalSoft_Set;
+	SPI_InitStruct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4; // SPI frequency is APB2 frequency / 4
+	SPI_InitStruct.SPI_FirstBit = SPI_FirstBit_MSB;									// MSB transmitted first
+	SPI_InitStruct.SPI_Mode = SPI_Mode_Master; 											// Master mode
+	SPI_Init(CC2500_SPI, &SPI_InitStruct);
+	
+	// Enable SPI
+	SPI_Cmd(CC2500_SPI, ENABLE); 
+	
+		// Configure the chip select pin
+	GPIO_InitStruct_A.GPIO_Pin = CC2500_SPI_CS;
 	GPIO_InitStruct_A.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct_A.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct_A.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct_A.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOA, &GPIO_InitStruct_A);
 	
-	// Set chip select high
-	GPIOA->BSRRL |= CC2500_SCI_CS; 
-	
-	
-	/* configure SPI1 in Mode 0
-	* CPOL = 0 --> clock is low when idle
-	* CPHA = 0 --> data is sampled at the first edge
+	// Set chip select to high
+	GPIO_SetBits(CC2500_GPIO_PORT, CC2500_SPI_CS);
+	/*
+	// Enable interrupts on GPIO pins
+  GPIO_InitStructure.GPIO_Pin = LIS3DSH_SPI_INT1_PIN;
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN;
+  GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
+  GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+  GPIO_InitStructure.GPIO_PuPd  = GPIO_PuPd_NOPULL;
+  GPIO_Init(LIS3DSH_SPI_INT1_GPIO_PORT, &GPIO_InitStructure);
+  
+  GPIO_InitStructure.GPIO_Pin = LIS3DSH_SPI_INT2_PIN;
+  GPIO_Init(LIS3DSH_SPI_INT2_GPIO_PORT, &GPIO_InitStructure);
 	*/
-	SPI_InitStruct.SPI_Direction = SPI_Direction_2Lines_FullDuplex; // set to full duplex mode, seperate MOSI and MISO lines
-	SPI_InitStruct.SPI_Mode = SPI_Mode_Master; // transmit in master mode, NSS pin has to be always high
-	SPI_InitStruct.SPI_DataSize = SPI_DataSize_8b; // one packet of data is 8 bits wide
-	SPI_InitStruct.SPI_CPOL = SPI_CPOL_Low; // clock is low when idle
-	SPI_InitStruct.SPI_CPHA = SPI_CPHA_1Edge; // data sampled at first edge
-	SPI_InitStruct.SPI_NSS = SPI_NSS_Soft | SPI_NSSInternalSoft_Set; // set the NSS management to internal and pull internal NSS high
-	SPI_InitStruct.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_4; // SPI frequency is APB2 frequency / 4
-	SPI_InitStruct.SPI_FirstBit = SPI_FirstBit_MSB;// data is transmitted MSB first
-	SPI_Init(SPI1, &SPI_InitStruct);
-	SPI_Cmd(SPI1, ENABLE); // enable SPI1
 }
+
+static uint8_t CC2500_SendByte(uint8_t byte){
+	// Continue waiting while the data register is not empty
+	CC2500Timeout = CC2500_FLAG_TIMEOUT;
+  while (SPI_I2S_GetFlagStatus(CC2500_SPI, SPI_I2S_FLAG_TXE) == RESET)
+  {
+    if((CC2500Timeout--) == 0) return 0;
+  }
+  
+  /* Send a Byte through the SPI peripheral */
+  SPI_I2S_SendData(CC2500_SPI, byte);
+  
+  /* Wait to receive a Byte */
+  CC2500Timeout = CC2500_FLAG_TIMEOUT;
+  while (SPI_I2S_GetFlagStatus(CC2500_SPI, SPI_I2S_FLAG_RXNE) == RESET)
+  {
+    if((CC2500Timeout--) == 0) return 0;
+  }
+  
+  /* Return the Byte read from the SPI bus */
+  return (uint8_t)SPI_I2S_ReceiveData(CC2500_SPI);
+}
+
+/**
+  * @brief  Reads a block of data from the CC2500
+  * @param  pBuffer : pointer to the buffer that receives the data read from the CC2500
+  * @param  ReadAddr : CC2500 internal address to read from
+  * @param  NumByteToRead : number of bytes to read from the CC2500
+  * @retval None
+  */
+void CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
+{  
+  if(NumByteToRead > 0x01)
+  {
+    ReadAddr |= (uint8_t)(READWRITE_CMD | MULTIPLEBYTE_CMD);
+  }
+  else
+  {
+    ReadAddr |= (uint8_t)READWRITE_CMD;
+  }
+	
+  /* Set chip select Low at the start of the transmission */
+  CC2500_CS_LOW();
+  
+  /* Send the Address of the indexed register */
+  CC2500_SendByte(ReadAddr);
+  
+  /* Receive the data that will be read from the device (MSB First) */
+  while(NumByteToRead > 0x00)
+  {
+    /* Send dummy byte (0x00) to generate the SPI clock to CC2500 (Slave device) */
+    *pBuffer = CC2500_SendByte(DUMMY_BYTE);
+    NumByteToRead--;
+    pBuffer++;
+  }
+  
+  /* Set chip select High at the end of the transmission */ 
+  CC2500_CS_HIGH();
+}
+
+
 /* This funtion is used to transmit and receive data
 * with SPI1
 * data --> data to be transmitted
@@ -84,39 +163,26 @@ uint8_t SPI1_send(uint8_t data){
 int main (void) {
 	uint8_t received_val = 0;
 	init_SPI1();
+	
+	uint8_t version;
+	uint8_t versionAddr = 0x31;
+	uint16_t numBytes = 1;
+	
+	uint8_t partnum;
+	uint8_t partnumAddr = 0x30;
+	
+	CC2500_Read(&version, versionAddr, numBytes);
+	CC2500_Read(&partnum, partnumAddr, numBytes);
+	
+	printf("Version: %d\n", version);
+	printf("PartNum: %d\n", partnum);
+	
+	/*
 	while(1){
-		GPIOA->BSRRH |= CC2500_SCI_CS; // set PA3 (CS) low
+		GPIOA->BSRRH |= CC2500_SPI_CS; // set PA3 (CS) low
 		SPI1_send(0xAA); // transmit data
 		received_val = SPI1_send(0x00); // transmit dummy byte and receive data
-		GPIOE->BSRRL |= CC2500_SCI_CS; // set PA3 (CS) high
+		GPIOE->BSRRL |= CC2500_SPI_CS; // set PA3 (CS) high
 	}
+	*/
 }
-/*
-// Read a register on the CC2500 chip
-char cc2500_read_reg(char i) {
-
-  char cc2500_status_byte = uart_spi_byte(CC2500_READ | i, SPI_START_TRANS);
-  return uart_spi_byte(0x00, SPI_END_TRANS);
-}
-
-char uart_spi_byte(char b, int trans) {
-  char data = 0x00;
-  //only uart1 at the moment
-  if (uart_port & USE_UART1){
-    if(trans&SPI_START_TRANS) {
-      P5OUT &= ~0x01;
-    }
-    uart_put_byte(b);
-    while ((IFG2 & URXIFG1) == 0);
-    data = RXBUF1;
-
-    timer_wait(2);
-
-    if(trans & SPI_END_TRANS) {
-      P5OUT |= 0x01;
-    }
-  }
-
-  return data;
-}
-*/
