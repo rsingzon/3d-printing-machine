@@ -11,52 +11,45 @@
 
 void init_SPI1(void){
 	GPIO_InitTypeDef GPIO_InitStruct_A;
-	GPIO_InitTypeDef GPIO_InitStruct_C;
 	SPI_InitTypeDef SPI_InitStruct;
 	
 	// enable clock for used IO pins
 	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOC, ENABLE);
 
+	// enable peripheral clock
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	
 	/* configure pins used by SPI1
-	* PA13 = Chip select
-	* PA9 = SCK
-	* PC9 = MISO
-	* PC7 = MOSI
+	* PA3 = Chip select
+	* PA7 = MOSI
+	* PA6 = MISO
+	* PA5 = SCK	
 	*/
-	GPIO_InitStruct_A.GPIO_Pin = GPIO_Pin_9;
+	GPIO_InitStruct_A.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
 	GPIO_InitStruct_A.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStruct_A.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct_A.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct_A.GPIO_PuPd = GPIO_PuPd_NOPULL;
 	GPIO_Init(GPIOA, &GPIO_InitStruct_A);
 	
-	GPIO_InitStruct_C.GPIO_Pin = GPIO_Pin_9 | GPIO_Pin_7;
-	GPIO_InitStruct_C.GPIO_Mode = GPIO_Mode_AF;
-	GPIO_InitStruct_C.GPIO_OType = GPIO_OType_PP;
-	GPIO_InitStruct_C.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStruct_C.GPIO_PuPd = GPIO_PuPd_NOPULL;
-	GPIO_Init(GPIOC, &GPIO_InitStruct_C);
-	
 	// connect SPI1 pins to SPI alternate function
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource9, GPIO_AF_SPI1);
-	GPIO_PinAFConfig(GPIOC, GPIO_PinSource9, GPIO_AF_SPI1);
-	GPIO_PinAFConfig(GPIOC, GPIO_PinSource7, GPIO_AF_SPI1);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_SPI1);
+	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_SPI1);
 	
 	/* Configure the chip select pin
-	in this case we will use PE7 */
-	GPIO_InitStruct_A.GPIO_Pin = GPIO_Pin_13;
+	in this case we will use PA3 */
+	GPIO_InitStruct_A.GPIO_Pin = GPIO_Pin_3;
 	GPIO_InitStruct_A.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct_A.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct_A.GPIO_Speed = GPIO_Speed_50MHz;
 	GPIO_InitStruct_A.GPIO_PuPd = GPIO_PuPd_UP;
 	GPIO_Init(GPIOA, &GPIO_InitStruct_A);
 	
-	// Set PA13 high
-	GPIOA->BSRRL |= GPIO_Pin_13; 
+	// Set chip select high
+	GPIOA->BSRRL |= GPIO_Pin_3; 
 	
-	// enable peripheral clock
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	
 	/* configure SPI1 in Mode 0
 	* CPOL = 0 --> clock is low when idle
 	* CPHA = 0 --> data is sampled at the first edge
@@ -92,10 +85,10 @@ int main (void) {
 	uint8_t received_val = 0;
 	init_SPI1();
 	while(1){
-		GPIOA->BSRRH |= GPIO_Pin_13; // set PA13 (CS) low
+		GPIOA->BSRRH |= GPIO_Pin_3; // set PA3 (CS) low
 		SPI1_send(0xAA); // transmit data
 		received_val = SPI1_send(0x00); // transmit dummy byte and receive data
-		GPIOE->BSRRL |= GPIO_Pin_13; // set PA13 (CS) high
+		GPIOE->BSRRL |= GPIO_Pin_3; // set PA3 (CS) high
 	}
 }
 
