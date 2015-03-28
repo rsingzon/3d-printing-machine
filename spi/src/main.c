@@ -8,24 +8,25 @@
 #include "stm32f4xx_conf.h"
 #include <stdio.h>
 
+#include "spi.h"
 
 void init_SPI1(void){
 	GPIO_InitTypeDef GPIO_InitStruct_A;
 	SPI_InitTypeDef SPI_InitStruct;
 	
 	// enable clock for used IO pins
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOA, ENABLE);
+	RCC_AHB1PeriphClockCmd(CC2500_GPIO_CLK, ENABLE);
 
 	// enable peripheral clock
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_SPI1, ENABLE);
+	RCC_APB2PeriphClockCmd(CC2500_SPI_CLK, ENABLE);
 	
 	/* configure pins used by SPI1
 	* PA3 = Chip select
-	* PA7 = MOSI
-	* PA6 = MISO
 	* PA5 = SCK	
+	* PA6 = MISO
+	* PA7 = MOSI
 	*/
-	GPIO_InitStruct_A.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
+	GPIO_InitStruct_A.GPIO_Pin = CC2500_SCI_SCK | CC2500_SCI_MISO | CC2500_SCI_MOSI;
 	GPIO_InitStruct_A.GPIO_Mode = GPIO_Mode_AF;
 	GPIO_InitStruct_A.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct_A.GPIO_Speed = GPIO_Speed_50MHz;
@@ -33,13 +34,12 @@ void init_SPI1(void){
 	GPIO_Init(GPIOA, &GPIO_InitStruct_A);
 	
 	// connect SPI1 pins to SPI alternate function
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource5, GPIO_AF_SPI1);
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource6, GPIO_AF_SPI1);
-	GPIO_PinAFConfig(GPIOA, GPIO_PinSource7, GPIO_AF_SPI1);
+	GPIO_PinAFConfig(GPIOA, CC2500_SCK_SOURCE, CC2500_AF_SPI);
+	GPIO_PinAFConfig(GPIOA, CC2500_MISO_SOURCE, CC2500_AF_SPI);
+	GPIO_PinAFConfig(GPIOA, CC2500_MOSI_SOURCE, CC2500_AF_SPI);
 	
-	/* Configure the chip select pin
-	in this case we will use PA3 */
-	GPIO_InitStruct_A.GPIO_Pin = GPIO_Pin_3;
+	// Configure the chip select pin
+	GPIO_InitStruct_A.GPIO_Pin = CC2500_SCI_CS;
 	GPIO_InitStruct_A.GPIO_Mode = GPIO_Mode_OUT;
 	GPIO_InitStruct_A.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStruct_A.GPIO_Speed = GPIO_Speed_50MHz;
@@ -47,7 +47,7 @@ void init_SPI1(void){
 	GPIO_Init(GPIOA, &GPIO_InitStruct_A);
 	
 	// Set chip select high
-	GPIOA->BSRRL |= GPIO_Pin_3; 
+	GPIOA->BSRRL |= CC2500_SCI_CS; 
 	
 	
 	/* configure SPI1 in Mode 0
@@ -85,11 +85,38 @@ int main (void) {
 	uint8_t received_val = 0;
 	init_SPI1();
 	while(1){
-		GPIOA->BSRRH |= GPIO_Pin_3; // set PA3 (CS) low
+		GPIOA->BSRRH |= CC2500_SCI_CS; // set PA3 (CS) low
 		SPI1_send(0xAA); // transmit data
 		received_val = SPI1_send(0x00); // transmit dummy byte and receive data
-		GPIOE->BSRRL |= GPIO_Pin_3; // set PA3 (CS) high
+		GPIOE->BSRRL |= CC2500_SCI_CS; // set PA3 (CS) high
 	}
 }
+/*
+// Read a register on the CC2500 chip
+char cc2500_read_reg(char i) {
 
+  char cc2500_status_byte = uart_spi_byte(CC2500_READ | i, SPI_START_TRANS);
+  return uart_spi_byte(0x00, SPI_END_TRANS);
+}
 
+char uart_spi_byte(char b, int trans) {
+  char data = 0x00;
+  //only uart1 at the moment
+  if (uart_port & USE_UART1){
+    if(trans&SPI_START_TRANS) {
+      P5OUT &= ~0x01;
+    }
+    uart_put_byte(b);
+    while ((IFG2 & URXIFG1) == 0);
+    data = RXBUF1;
+
+    timer_wait(2);
+
+    if(trans & SPI_END_TRANS) {
+      P5OUT |= 0x01;
+    }
+  }
+
+  return data;
+}
+*/
