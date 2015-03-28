@@ -143,6 +143,40 @@ void CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   CC2500_CS_HIGH();
 }
 
+/**
+  * @brief  Writes one byte to the CC2500
+  * @param  pBuffer : pointer to the buffer  containing the data to be written to the CC2500
+  * @param  WriteAddr : CC2500's internal address to write to.
+  * @param  NumByteToWrite: Number of bytes to write.
+  * @retval None
+  */
+void CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
+{
+  /* Configure the MS bit: 
+       - When 0, the address will remain unchanged in multiple read/write commands.
+       - When 1, the address will be auto incremented in multiple read/write commands.
+  */
+  if(NumByteToWrite > 0x01)
+  {
+    WriteAddr |= (uint8_t)MULTIPLEBYTE_CMD;
+  }
+  /* Set chip select Low at the start of the transmission */
+  CC2500_CS_LOW();
+  
+  /* Send the Address of the indexed register */
+  CC2500_SendByte(WriteAddr);
+  /* Send the data that will be written into the device (MSB First) */
+  while(NumByteToWrite >= 0x01)
+  {
+    CC2500_SendByte(*pBuffer);
+    NumByteToWrite--;
+    pBuffer++;
+  }
+  
+  /* Set chip select High at the end of the transmission */ 
+  CC2500_CS_HIGH();
+}
+
 
 /* This funtion is used to transmit and receive data
 * with SPI1
@@ -164,12 +198,13 @@ int main (void) {
 	uint8_t received_val = 0;
 	init_SPI1();
 	
+	// Test reading from registers
 	uint8_t version;
-	uint8_t versionAddr = 0x31;
+	uint8_t versionAddr = 0xF1;
 	uint16_t numBytes = 1;
 	
 	uint8_t partnum;
-	uint8_t partnumAddr = 0x30;
+	uint8_t partnumAddr = 0xF0;
 	
 	CC2500_Read(&version, versionAddr, numBytes);
 	CC2500_Read(&partnum, partnumAddr, numBytes);
@@ -177,12 +212,17 @@ int main (void) {
 	printf("Version: %d\n", version);
 	printf("PartNum: %d\n", partnum);
 	
-	/*
-	while(1){
-		GPIOA->BSRRH |= CC2500_SPI_CS; // set PA3 (CS) low
-		SPI1_send(0xAA); // transmit data
-		received_val = SPI1_send(0x00); // transmit dummy byte and receive data
-		GPIOE->BSRRL |= CC2500_SPI_CS; // set PA3 (CS) high
-	}
-	*/
+	// Test default state of registers
+	uint8_t state;
+	uint8_t regAddr = 0x01;
+	CC2500_Read(&state, regAddr, numBytes);
+	printf("State: %d\n", state);
+	
+	// Test writing to registers
+	uint8_t configuration = 0x5D;	
+	CC2500_Write(&configuration, regAddr, numBytes);
+	
+	CC2500_Read(&state, regAddr, numBytes);
+	printf("State: %d\n", state);
+
 }
