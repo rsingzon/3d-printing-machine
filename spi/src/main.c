@@ -113,7 +113,7 @@ static uint8_t CC2500_SendByte(uint8_t byte){
   * @param  NumByteToRead : number of bytes to read from the CC2500
   * @retval None
   */
-void CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
+uint8_t CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
 {  
   if(NumByteToRead > 0x01)
   {
@@ -127,6 +127,11 @@ void CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   /* Set chip select Low at the start of the transmission */
   CC2500_CS_LOW();
   
+	CC2500Timeout = CC2500_FLAG_TIMEOUT;
+	while (GPIO_ReadInputDataBit(CC2500_GPIO_PORT, CC2500_SPI_MISO)==1){
+    if((CC2500Timeout--) == 0) return 0;
+  }
+	
   /* Send the Address of the indexed register */
   CC2500_SendByte(ReadAddr);
   
@@ -141,6 +146,7 @@ void CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   
   /* Set chip select High at the end of the transmission */ 
   CC2500_CS_HIGH();
+	return 0;
 }
 
 /**
@@ -150,7 +156,7 @@ void CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   * @param  NumByteToWrite: Number of bytes to write.
   * @retval None
   */
-void CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
+uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
 {
   /* Configure the MS bit: 
        - When 0, the address will remain unchanged in multiple read/write commands.
@@ -162,6 +168,10 @@ void CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
   }
   /* Set chip select Low at the start of the transmission */
   CC2500_CS_LOW();
+	CC2500Timeout = CC2500_FLAG_TIMEOUT;
+	while (GPIO_ReadInputDataBit(CC2500_GPIO_PORT, CC2500_SPI_MISO)==1){
+    if((CC2500Timeout--) == 0) return 0;
+  }
   
   /* Send the Address of the indexed register */
   CC2500_SendByte(WriteAddr);
@@ -175,21 +185,40 @@ void CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
   
   /* Set chip select High at the end of the transmission */ 
   CC2500_CS_HIGH();
+	
+	return 0;
 }
 
-
-/* This funtion is used to transmit and receive data
-* with SPI1
-* data --> data to be transmitted
-* returns received value
-*/
-uint8_t SPI1_send(uint8_t data){
-	SPI1->DR = data; // write data to be transmitted to the SPI data register
-	while( !(SPI1->SR & SPI_I2S_FLAG_TXE) ); // wait until transmit complete
-	while( !(SPI1->SR & SPI_I2S_FLAG_RXNE) ); // wait until receive complete
-	while( SPI1->SR & SPI_I2S_FLAG_BSY ); // wait until SPI is not busy anymore
-	return SPI1->DR; // return received data from SPI data register
+/**
+  * @brief  Starts transmission on the CC2500
+  * @retval Status
+  */
+uint8_t CC2500_Start_Transmit(void){
+	
+	uint8_t status = CC2500_Write(0,TRANSMIT_COMMAND,0); 
+	return status;
 }
+
+/**
+  * @brief  Starts receiving on the CC2500
+  * @retval Status
+  */
+uint8_t CC2500_Start_Receive(void){
+	
+	uint8_t status = CC2500_Write(0,RECEIVE_COMMAND,0); 
+	return status;
+}
+
+/**
+  * @brief  Reset CC2500
+  * @retval Status
+  */
+uint8_t CC2500_Reset(void){
+	
+	uint8_t status = CC2500_Write(0,RESET_COMMAND,0); 
+	return status;
+}
+
 
 /*
  * main: initialize and start the system
@@ -212,6 +241,7 @@ int main (void) {
 	printf("Version: %d\n", version);
 	printf("PartNum: %d\n", partnum);
 	
+	/*
 	// Test default state of registers
 	uint8_t state;
 	uint8_t regAddr = 0x01;
@@ -219,10 +249,33 @@ int main (void) {
 	printf("State: %d\n", state);
 	
 	// Test writing to registers
-	uint8_t configuration = 0x5D;	
+	uint8_t configuration = 0xFF;	
 	CC2500_Write(&configuration, regAddr, numBytes);
 	
 	CC2500_Read(&state, regAddr, numBytes);
 	printf("State: %d\n", state);
+	*/
+	
+	// Enable transmission on the CC2500
+	CC2500_Reset();
+	
+	uint8_t statusByte;
+	CC2500_Read(&statusByte, 0x3D, numBytes);
+	printf("Status byte: %d\n", statusByte);
+	
+	CC2500_Start_Transmit();
+	
+	int p;
+	for(p = 0; p < 1000000; p++);
+	
+	// Read status byte
+	CC2500_Read(&statusByte, 0x3D, numBytes);
+	printf("Status byte: %d\n", statusByte);
 
+	CC2500_Start_Transmit();
+	
+	for(p = 0; p < 1000000; p++);
+	
+	CC2500_Read(&statusByte, 0x3D, numBytes);
+	printf("Status byte: %d\n", statusByte);
 }
