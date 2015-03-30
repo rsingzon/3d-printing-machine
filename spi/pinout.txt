@@ -1,6 +1,6 @@
 Pinout
 
-PA3  - Pin 17 (Chip select)
-PA5  - Pin 16 (SCK)
-PA6  - Pin 15 (MISO)
-PA7  - Pin 18 (MOSI)
+PA3  - Pin 17 (Chip select) - Green Wire
+PA5  - Pin 16 (SCK)  - Yellow Wire
+PA6  - Pin 15 (MISO) - Orange Wire
+PA7  - Pin 18 (MOSI) - Blue Wire
