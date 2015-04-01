@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "spi.h"
+#include "registers.h"
 
 __IO uint32_t  CC2500Timeout = CC2500_FLAG_TIMEOUT; 
 
@@ -133,7 +134,8 @@ uint8_t CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   }
 	
   /* Send the Address of the indexed register */
-  CC2500_SendByte(ReadAddr);
+  uint8_t statusByte = CC2500_SendByte(ReadAddr);
+	
   
   /* Receive the data that will be read from the device (MSB First) */
   while(NumByteToRead > 0x00)
@@ -146,7 +148,7 @@ uint8_t CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   
   /* Set chip select High at the end of the transmission */ 
   CC2500_CS_HIGH();
-	return 0;
+	return statusByte;
 }
 
 /**
@@ -219,6 +221,62 @@ uint8_t CC2500_Reset(void){
 	return status;
 }
 
+/**
+  * @brief  Initializes the registers of the CC2500
+  * @retval Status
+  */
+uint8_t CC2500_Init_Registers(void){
+	
+	uint8_t regValueArray[NUM_REGISTERS_TO_INIT];
+	
+	regValueArray[IOCFG2_ADDRESS] = VAL_CC2500_IOCFG2;
+	regValueArray[IOCFG0_ADDRESS] = VAL_CC2500_IOCFG0;
+	regValueArray[FIFOTHR_ADDRESS] = VAL_CC2500_FIFOTHR;
+	regValueArray[PKTLEN_ADDRESS] = VAL_CC2500_PKTLEN;
+	regValueArray[PKTCTRL1_ADDRESS] = VAL_CC2500_PKTCTRL1;
+	regValueArray[PKTCTRL0_ADDRESS] = VAL_CC2500_PKTCTRL0;
+	regValueArray[ADDR_ADDRESS] = VAL_CC2500_ADDR;
+	regValueArray[CHANNR_ADDRESS] = VAL_CC2500_CHANNR;
+	regValueArray[FSCTRL1_ADDRESS] = VAL_CC2500_FSCTRL1;
+	regValueArray[FSCTRL0_ADDRESS] = VAL_CC2500_FSCTRL0;
+	regValueArray[FREQ2_ADDRESS] = VAL_CC2500_FREQ2;
+	regValueArray[FREQ1_ADDRESS] = VAL_CC2500_FREQ1;
+	regValueArray[FREQ0_ADDRESS] = VAL_CC2500_FREQ0;
+	regValueArray[MDMCFG4_ADDRESS] = VAL_CC2500_MDMCFG4;
+	regValueArray[MDMCFG3_ADDRESS] = VAL_CC2500_MDMCFG3;
+	regValueArray[MDMCFG2_ADDRESS] = VAL_CC2500_MDMCFG2;
+	regValueArray[MDMCFG1_ADDRESS] = VAL_CC2500_MDMCFG1;
+	regValueArray[MDMCFG0_ADDRESS] = VAL_CC2500_MDMCFG0;
+	regValueArray[DEVIATN_ADDRESS] = VAL_CC2500_DEVIATN;
+	regValueArray[MCSM1_ADDRESS] = VAL_CC2500_MCSM1;
+	regValueArray[MCSM0_ADDRESS] = VAL_CC2500_MCSM0;
+	regValueArray[FOCCFG_ADDRESS] = VAL_CC2500_FOCCFG;
+	regValueArray[BSCFG_ADDRESS] = VAL_CC2500_BSCFG;
+	regValueArray[AGCCTRL2_ADDRESS] = VAL_CC2500_AGCTRL2;
+	regValueArray[AGCCTRL1_ADDRESS] = VAL_CC2500_AGCTRL1;
+	regValueArray[AGCCTRL0_ADDRESS] = VAL_CC2500_AGCTRL0;
+	
+	regValueArray[FREND1_ADDRESS] = VAL_CC2500_FREND1;
+	regValueArray[FREND0_ADDRESS] = VAL_CC2500_FREND0;
+	regValueArray[FSCAL3_ADDRESS] = VAL_CC2500_FSCAL3;
+	regValueArray[FSCAL2_ADDRESS] = VAL_CC2500_FSCAL2;
+	regValueArray[FSCAL1_ADDRESS] = VAL_CC2500_FSCAL1;
+	regValueArray[FSCAL0_ADDRESS] = VAL_CC2500_FSCAL0;
+	
+	
+	regValueArray[FSTEST_ADDRESS] = VAL_CC2500_FSTEST;
+	
+	
+	regValueArray[TEST2_ADDRESS] = VAL_CC2500_TEST2;
+	regValueArray[TEST1_ADDRESS] = VAL_CC2500_TEST1;
+	regValueArray[TEST0_ADDRESS] = VAL_CC2500_TEST0;
+	
+	
+	CC2500_Write(regValueArray, 0, NUM_REGISTERS_TO_INIT);
+	
+	return 0;
+}
+
 
 /*
  * main: initialize and start the system
@@ -227,55 +285,40 @@ int main (void) {
 	uint8_t received_val = 0;
 	init_SPI1();
 	
-	// Test reading from registers
-	uint8_t version;
-	uint8_t versionAddr = 0xF1;
+	// Initialize register values
+	CC2500_Init_Registers();
+	
 	uint16_t numBytes = 1;
 	
-	uint8_t partnum;
-	uint8_t partnumAddr = 0xF0;
-	
-	CC2500_Read(&version, versionAddr, numBytes);
-	CC2500_Read(&partnum, partnumAddr, numBytes);
-	
-	printf("Version: %d\n", version);
-	printf("PartNum: %d\n", partnum);
-	
-	/*
-	// Test default state of registers
-	uint8_t state;
-	uint8_t regAddr = 0x01;
-	CC2500_Read(&state, regAddr, numBytes);
-	printf("State: %d\n", state);
-	
-	// Test writing to registers
-	uint8_t configuration = 0xFF;	
-	CC2500_Write(&configuration, regAddr, numBytes);
-	
-	CC2500_Read(&state, regAddr, numBytes);
-	printf("State: %d\n", state);
-	*/
-	
-	// Enable transmission on the CC2500
-	CC2500_Reset();
-	
 	uint8_t statusByte;
-	CC2500_Read(&statusByte, 0x3D, numBytes);
-	printf("Status byte: %d\n", statusByte);
-	
-	CC2500_Start_Transmit();
-	
-	int p;
-	for(p = 0; p < 1000000; p++);
-	
+		
+	// Enable transmission on the CC2500
+	CC2500_Reset();	
+	CC2500_Start_Receive();
+		
 	// Read status byte
-	CC2500_Read(&statusByte, 0x3D, numBytes);
-	printf("Status byte: %d\n", statusByte);
-
-	CC2500_Start_Transmit();
+	while((statusByte & 0xf0) != 0x10){
+		statusByte = CC2500_Read(&statusByte, 0x3D, numBytes);
+	}
 	
-	for(p = 0; p < 1000000; p++);
-	
-	CC2500_Read(&statusByte, 0x3D, numBytes);
 	printf("Status byte: %d\n", statusByte);
+	
+	uint8_t receivedData[11]={0,0,0,0,0,0,0,0,0,0,0};
+	uint8_t receivedByte;
+	
+	// The number of byte available to read is contained in the last
+	// four bits of the status byte
+	// Mask the status byte
+	uint8_t bytesToRead = 0x0F & statusByte;
+	printf("Bytes to read: %d\n", bytesToRead);
+	
+	// Read the data in the RX FIFO 
+	
+	//while(bytesToRead != 0 ){
+	while(1){
+		statusByte = CC2500_Read(&receivedByte, RX_FIFO_BYTE_ADDRESS, 1);
+		printf("Received data: %d\n", receivedByte);
+		bytesToRead = 0x0F & statusByte;
+		
+	}
 }

@@ -8,7 +8,14 @@
  #ifndef __REGISTERS_H
  #define __REGISTERS_H
  
- #define NUM_REGISTERS_TO_INIT 	48
+ #define NUM_REGISTERS_TO_INIT 	47
+ 
+// FIFO Addresses - From datasheet page 24
+#define TX_FIFO_BYTE_ADDRESS	0x3F
+#define TX_FIFO_BURST_ADDRESS	0x7F
+#define RX_FIFO_BYTE_ADDRESS	0xBF
+#define	RX_FIFO_BURST_ADDRESS	0xFF
+ 
 
 // Addresses for each of the CC2500 registers, obtained from the SmartRF program
 #define IOCFG2_ADDRESS        0x0000
@@ -58,8 +65,8 @@
 #define TEST2_ADDRESS         0x002C
 #define TEST1_ADDRESS         0x002D
 #define TEST0_ADDRESS         0x002E
-#define PARTNUM_ADDRESS       0x0030
-#define VERSION_ADDRESS       0x0031
+#define PARTNUM_ADDRESS       0x00F0
+#define VERSION_ADDRESS       0x00F1
 #define FREQEST_ADDRESS       0x0032
 #define LQI_ADDRESS           0x0033
 #define RSSI_ADDRESS          0x0034
@@ -76,69 +83,60 @@
 
 
 // Default values for registers obtained from the SmartRF program
-#define IOCFG2_VALUE         0x29
-#define IOCFG1_VALUE         0x2E
-#define IOCFG0_VALUE         0x06
-#define FIFOTHR_VALUE        0x07
-#define SYNC1_VALUE          0xD3
-#define SYNC0_VALUE          0x91
-#define PKTLEN_VALUE         0xFF
-#define PKTCTRL1_VALUE       0x04
-#define PKTCTRL0_VALUE       0x05
-#define ADDR_VALUE           0x00
-#define CHANNR_VALUE         0x03
-#define FSCTRL1_VALUE        0x0A
-#define FSCTRL0_VALUE        0x00
-#define FREQ2_VALUE          0x5D
-#define FREQ1_VALUE          0x93
-#define FREQ0_VALUE          0xB1
-#define MDMCFG4_VALUE        0x2D
-#define MDMCFG3_VALUE        0x3B
-#define MDMCFG2_VALUE        0x73
-#define MDMCFG1_VALUE        0x23
-#define MDMCFG0_VALUE        0x3B
-#define DEVIATN_VALUE        0x01
-#define MCSM2_VALUE          0x07
-#define MCSM1_VALUE          0x30
-#define MCSM0_VALUE          0x18
-#define FOCCFG_VALUE         0x1D
-#define BSCFG_VALUE          0x1C
-#define AGCCTRL2_VALUE       0xC7
-#define AGCCTRL1_VALUE       0x00
-#define AGCCTRL0_VALUE       0xB0
-#define WOREVT1_VALUE        0x87
-#define WOREVT0_VALUE        0x6B
-#define WORCTRL_VALUE        0xF8
-#define FREND1_VALUE         0xB6
-#define FREND0_VALUE         0x10
-#define FSCAL3_VALUE         0xEA
-#define FSCAL2_VALUE         0x0A
-#define FSCAL1_VALUE         0x00
-#define FSCAL0_VALUE         0x11
-#define RCCTRL1_VALUE        0x41
-#define RCCTRL0_VALUE        0x00
-#define FSTEST_VALUE         0x59
-#define PTEST_VALUE          0x7F
-#define AGCTEST_VALUE        0x3F
-#define TEST2_VALUE          0x88
-#define TEST1_VALUE          0x31
-#define TEST0_VALUE          0x0B
-#define PARTNUM_VALUE        0x80
-#define VERSION_VALUE        0x03
-#define FREQEST_VALUE        0x00
-#define LQI_VALUE            0x00
-#define RSSI_VALUE           0x00
-#define MARCSTATE_VALUE      0x00
-#define WORTIME1_VALUE       0x00
-#define WORTIME0_VALUE       0x00
-#define PKTSTATUS_VALUE      0x00
-#define VCO_VC_DAC_VALUE     0x00
-#define TXBYTES_VALUE        0x00
-#define RXBYTES_VALUE        0x00
-#define RCCTRL1_STATUS_VALUE 0x00
-#define RCCTRL0_STATUS_VALUE 0x00
+#define VAL_CC2500_IOCFG2 	0x29 		
+#define VAL_CC2500_IOCFG0 	0x06	
+
+#define VAL_CC2500_FIFOTHR 	0x07
+
+#define VAL_CC2500_PKTLEN 	0x01
+
+#define VAL_CC2500_PKTCTRL1 0x08	
+#define VAL_CC2500_PKTCTRL0 0x04	
+
+#define VAL_CC2500_ADDR 		0x00	
+
+#define VAL_CC2500_CHANNR 	0x00
+
+#define VAL_CC2500_FSCTRL1 	0x0C	
+#define VAL_CC2500_FSCTRL0 	0x00	
+
+// freq set to 2.433 GHz, note f_xosc = 26MHz
+#define VAL_CC2500_FREQ2 		0x5D	
+#define VAL_CC2500_FREQ1 		0x94	
+#define VAL_CC2500_FREQ0 		0x02	
+
+#define VAL_CC2500_MDMCFG4 	0x0E
+#define VAL_CC2500_MDMCFG3 	0x3B
+#define VAL_CC2500_MDMCFG2 	0x73	
+#define VAL_CC2500_MDMCFG1 	0x42	
+#define VAL_CC2500_MDMCFG0 	0xF8	
+
+#define VAL_CC2500_DEVIATN 	0x00	
 
 
+#define VAL_CC2500_MCSM1 		0x02	
+#define VAL_CC2500_MCSM0 		0x18	
+
+#define VAL_CC2500_FOCCFG 	0x1D	
+#define VAL_CC2500_BSCFG 		0x1C	
+
+#define VAL_CC2500_AGCTRL2 	0xC7	 
+#define VAL_CC2500_AGCTRL1 	0x40	
+#define VAL_CC2500_AGCTRL0 	0xB0
+
+#define VAL_CC2500_FREND1 	0xB6	 
+#define VAL_CC2500_FREND0 	0x10	
+
+#define VAL_CC2500_FSCAL3 	0xEA	 
+#define VAL_CC2500_FSCAL2 	0x0A	
+#define VAL_CC2500_FSCAL1 	0x00	 
+#define VAL_CC2500_FSCAL0 	0x19	
+
+#define VAL_CC2500_FSTEST 	0x59
+
+#define VAL_CC2500_TEST2 		0x88	
+#define VAL_CC2500_TEST1 		0x31	
+#define VAL_CC2500_TEST0 		0x0B
 
 
 #endif
