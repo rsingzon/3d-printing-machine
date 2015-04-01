@@ -90,8 +90,8 @@
 #define FSCTRL1_VALUE        0x0A
 #define FSCTRL0_VALUE        0x00
 #define FREQ2_VALUE          0x5D
-#define FREQ1_VALUE          0x44
-#define FREQ0_VALUE          0xEC
+#define FREQ1_VALUE          0x93
+#define FREQ0_VALUE          0xB1
 #define MDMCFG4_VALUE        0x2D
 #define MDMCFG3_VALUE        0x3B
 #define MDMCFG2_VALUE        0x73
@@ -137,6 +137,8 @@
 #define RXBYTES_VALUE        0x00
 #define RCCTRL1_STATUS_VALUE 0x00
 #define RCCTRL0_STATUS_VALUE 0x00
+
+
 
 
 #endif
