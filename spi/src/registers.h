@@ -7,6 +7,8 @@
 
  #ifndef __REGISTERS_H
  #define __REGISTERS_H
+ 
+ #define NUM_REGISTERS_TO_INIT 	48
 
 // Addresses for each of the CC2500 registers, obtained from the SmartRF program
 #define IOCFG2_ADDRESS        0x0000
