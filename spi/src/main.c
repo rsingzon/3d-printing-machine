@@ -160,6 +160,8 @@ uint8_t CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
   */
 uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite)
 {
+	uint8_t statusByte;
+	
   /* Configure the MS bit: 
        - When 0, the address will remain unchanged in multiple read/write commands.
        - When 1, the address will be auto incremented in multiple read/write commands.
@@ -172,7 +174,7 @@ uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrit
   CC2500_CS_LOW();
 	CC2500Timeout = CC2500_FLAG_TIMEOUT;
 	while (GPIO_ReadInputDataBit(CC2500_GPIO_PORT, CC2500_SPI_MISO)==1){
-    if((CC2500Timeout--) == 0) return 0;
+    if((CC2500Timeout--) == 0) return 0xFF;
   }
   
   /* Send the Address of the indexed register */
@@ -180,7 +182,7 @@ uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrit
   /* Send the data that will be written into the device (MSB First) */
   while(NumByteToWrite >= 0x01)
   {
-    CC2500_SendByte(*pBuffer);
+    statusByte = CC2500_SendByte(*pBuffer);
     NumByteToWrite--;
     pBuffer++;
   }
@@ -188,7 +190,7 @@ uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrit
   /* Set chip select High at the end of the transmission */ 
   CC2500_CS_HIGH();
 	
-	return 0;
+	return statusByte;
 }
 
 /**
@@ -277,6 +279,25 @@ uint8_t CC2500_Init_Registers(void){
 	return 0;
 }
 
+void CC2500_Read_Registers(void){
+	
+	int numBytes = 1;
+	uint8_t state;
+	uint8_t regAddr = 0x00;
+	
+	int i; 
+	
+	// Read all register values
+	for(i = 0; i < NUM_REGISTERS_TO_INIT; i++){
+		CC2500_Read(&state, regAddr, numBytes);
+		printf("Address: %x Value: %x\n", regAddr, state);
+		
+		regAddr++;
+	}
+	
+	
+}
+
 
 /*
  * main: initialize and start the system
@@ -287,38 +308,58 @@ int main (void) {
 	
 	// Initialize register values
 	CC2500_Init_Registers();
-	
-	uint16_t numBytes = 1;
+	CC2500_Read_Registers();
 	
 	uint8_t statusByte;
+	uint8_t readByte;
+	uint8_t numBytes = 1;
 		
 	// Enable transmission on the CC2500
-	CC2500_Reset();	
-	CC2500_Start_Receive();
-		
+	statusByte = CC2500_Reset();	
+	statusByte = CC2500_Start_Receive();
+	
+	int count;
+	//for (count = 0; count < 1000; count++);
+	
+	statusByte = CC2500_Read(&readByte, 0x3D, 2);
+	
+
 	// Read status byte
 	while((statusByte & 0xf0) != 0x10){
-		statusByte = CC2500_Read(&statusByte, 0x3D, numBytes);
+		statusByte = CC2500_Read(&readByte, 0x3D, 2);
 	}
+		
+	// Read 
+	statusByte = CC2500_Read(&readByte, 0xFB, 2);
+	uint8_t bytesToRead = 0x7F & readByte;
 	
-	printf("Status byte: %d\n", statusByte);
 	
-	uint8_t receivedData[11]={0,0,0,0,0,0,0,0,0,0,0};
+	
 	uint8_t receivedByte;
+	
+	
+	uint8_t receivedString[64];
+	
+	statusByte = CC2500_Read(receivedString, RX_FIFO_BYTE_ADDRESS, bytesToRead);
+	CC2500_Read(&readByte, 0xFB, 2);
+	
+	printf("Received String: %s\n", receivedString);
+	
+	/*
+		while(bytesToRead > 0){
+			statusByte = CC2500_Read(&receivedByte, RX_FIFO_BYTE_ADDRESS, 1);
+			bytesToRead--;
+			
+			CC2500_Read(&readByte, 0xFB, 2);
+		}
+	*/
+	
+	
+	
+	statusByte = CC2500_Read(&readByte, 0x3D, numBytes);
+	
 	
 	// The number of byte available to read is contained in the last
 	// four bits of the status byte
 	// Mask the status byte
-	uint8_t bytesToRead = 0x0F & statusByte;
-	printf("Bytes to read: %d\n", bytesToRead);
-	
-	// Read the data in the RX FIFO 
-	
-	//while(bytesToRead != 0 ){
-	while(1){
-		statusByte = CC2500_Read(&receivedByte, RX_FIFO_BYTE_ADDRESS, 1);
-		printf("Received data: %d\n", receivedByte);
-		bytesToRead = 0x0F & statusByte;
-		
-	}
 }
