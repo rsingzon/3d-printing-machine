@@ -21,7 +21,7 @@ uint8_t CC2500_Start_Transmit(void){
 	return status;
 }
 
-/**
+ /**
   * @brief  Starts receiving on the CC2500
   * @retval Status
   */
@@ -31,7 +31,7 @@ uint8_t CC2500_Start_Receive(void){
 	return status;
 }
 
-/**
+ /**
   * @brief  Reset CC2500
   * @retval Status
   */
@@ -41,7 +41,9 @@ uint8_t CC2500_Reset(void){
 	return status;
 }
 
-/**
+
+
+ /**
   * @brief  Initializes the registers of the CC2500
   * @retval Status
   */
@@ -86,7 +88,6 @@ uint8_t CC2500_Init_Registers(void){
 	
 	regValueArray[FSTEST_ADDRESS] = VAL_CC2500_FSTEST;
 	
-	
 	regValueArray[TEST2_ADDRESS] = VAL_CC2500_TEST2;
 	regValueArray[TEST1_ADDRESS] = VAL_CC2500_TEST1;
 	regValueArray[TEST0_ADDRESS] = VAL_CC2500_TEST0;
@@ -95,6 +96,23 @@ uint8_t CC2500_Init_Registers(void){
 	CC2500_Write(regValueArray, 0, NUM_REGISTERS_TO_INIT);
 	
 	return 0;
+}
+
+/**
+  * @brief  Sends a strobe command to the CC2500
+  * @retval Status
+  */
+uint8_t CC2500_Strobe(uint8_t command){
+	
+}
+
+/**
+  * @brief  Sends a burst command to the CC2500
+  * @retval Status
+  */
+uint8_t CC2500_Burst(uint8_t command, uint16_t bytesToWrite){
+	
+	
 }
 
 void CC2500_Read_Registers(void){
