@@ -10,6 +10,9 @@
 #ifndef __SPI_H
 #define __SPI_H
 
+#include "stm32f4xx.h"                  // Device header
+#include "stm32f4xx_conf.h"
+
  /* PA3 = Chip select
 	* PA5 = SCK	
 	* PA6 = MISO
@@ -45,16 +48,11 @@
 #define CC2500_CS_LOW()       GPIO_ResetBits(CC2500_GPIO_PORT, CC2500_SPI_CS)
 #define CC2500_CS_HIGH()      GPIO_SetBits(CC2500_GPIO_PORT, CC2500_SPI_CS)
 
-#define TRANSMIT_COMMAND			0x35
-#define RECEIVE_COMMAND				0x34
-#define RESET_COMMAND					0x30
-
 // Function prototypes
 static uint8_t CC2500_SendByte(uint8_t byte);
 uint8_t CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead);
 uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrite);
-uint8_t CC2500_Start_Transmit(void);
-uint8_t CC2500_Start_Receive(void);
-uint8_t CC2500_Reset(void);
+
+void init_SPI1(void);
 
 #endif
