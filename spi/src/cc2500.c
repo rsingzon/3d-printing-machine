@@ -41,6 +41,15 @@ uint8_t CC2500_Reset(void){
 	return status;
 }
 
+ /**
+  * @brief  Strobes the No op command
+  * @retval Status
+  */
+uint8_t CC2500_No_Op(void){
+	
+	uint8_t status = CC2500_Write(0,NO_OP_COMMAND,0); 
+	return status;
+}
 
 
  /**
@@ -50,51 +59,86 @@ uint8_t CC2500_Reset(void){
 uint8_t CC2500_Init_Registers(void){
 	
 	uint8_t regValueArray[NUM_REGISTERS_TO_INIT];
+
+	regValueArray[0] = VAL_CC2500_IOCFG2;
+	regValueArray[1] = VAL_CC2500_IOCFG0;
+	regValueArray[2] = VAL_CC2500_FIFOTHR;
+	regValueArray[3] = VAL_CC2500_PKTLEN;
+	regValueArray[4] = VAL_CC2500_PKTCTRL1;
+	regValueArray[5] = VAL_CC2500_PKTCTRL0;
+	regValueArray[6] = VAL_CC2500_ADDR;
+	regValueArray[7] = VAL_CC2500_CHANNR;
+	regValueArray[8] = VAL_CC2500_FSCTRL1;
+	regValueArray[9] = VAL_CC2500_FSCTRL0;
+	regValueArray[10] = VAL_CC2500_FREQ2;
+	regValueArray[11] = VAL_CC2500_FREQ1;
+	regValueArray[12] = VAL_CC2500_FREQ0;
+	regValueArray[13] = VAL_CC2500_MDMCFG4;
+	regValueArray[14] = VAL_CC2500_MDMCFG3;
+	regValueArray[15] = VAL_CC2500_MDMCFG2;
+	regValueArray[16] = VAL_CC2500_MDMCFG1;
+	regValueArray[17] = VAL_CC2500_MDMCFG0;
+	regValueArray[18] = VAL_CC2500_DEVIATN;
+	regValueArray[19] = VAL_CC2500_MCSM1;
+	regValueArray[20] = VAL_CC2500_MCSM0;
+	regValueArray[21] = VAL_CC2500_FOCCFG;
+	regValueArray[22] = VAL_CC2500_BSCFG;
+	regValueArray[23] = VAL_CC2500_AGCTRL2;
+	regValueArray[24] = VAL_CC2500_AGCTRL1;
+	regValueArray[25] = VAL_CC2500_AGCTRL0;
 	
-	regValueArray[IOCFG2_ADDRESS] = VAL_CC2500_IOCFG2;
-	regValueArray[IOCFG0_ADDRESS] = VAL_CC2500_IOCFG0;
-	regValueArray[FIFOTHR_ADDRESS] = VAL_CC2500_FIFOTHR;
-	regValueArray[PKTLEN_ADDRESS] = VAL_CC2500_PKTLEN;
-	regValueArray[PKTCTRL1_ADDRESS] = VAL_CC2500_PKTCTRL1;
-	regValueArray[PKTCTRL0_ADDRESS] = VAL_CC2500_PKTCTRL0;
-	regValueArray[ADDR_ADDRESS] = VAL_CC2500_ADDR;
-	regValueArray[CHANNR_ADDRESS] = VAL_CC2500_CHANNR;
-	regValueArray[FSCTRL1_ADDRESS] = VAL_CC2500_FSCTRL1;
-	regValueArray[FSCTRL0_ADDRESS] = VAL_CC2500_FSCTRL0;
-	regValueArray[FREQ2_ADDRESS] = VAL_CC2500_FREQ2;
-	regValueArray[FREQ1_ADDRESS] = VAL_CC2500_FREQ1;
-	regValueArray[FREQ0_ADDRESS] = VAL_CC2500_FREQ0;
-	regValueArray[MDMCFG4_ADDRESS] = VAL_CC2500_MDMCFG4;
-	regValueArray[MDMCFG3_ADDRESS] = VAL_CC2500_MDMCFG3;
-	regValueArray[MDMCFG2_ADDRESS] = VAL_CC2500_MDMCFG2;
-	regValueArray[MDMCFG1_ADDRESS] = VAL_CC2500_MDMCFG1;
-	regValueArray[MDMCFG0_ADDRESS] = VAL_CC2500_MDMCFG0;
-	regValueArray[DEVIATN_ADDRESS] = VAL_CC2500_DEVIATN;
-	regValueArray[MCSM1_ADDRESS] = VAL_CC2500_MCSM1;
-	regValueArray[MCSM0_ADDRESS] = VAL_CC2500_MCSM0;
-	regValueArray[FOCCFG_ADDRESS] = VAL_CC2500_FOCCFG;
-	regValueArray[BSCFG_ADDRESS] = VAL_CC2500_BSCFG;
-	regValueArray[AGCCTRL2_ADDRESS] = VAL_CC2500_AGCTRL2;
-	regValueArray[AGCCTRL1_ADDRESS] = VAL_CC2500_AGCTRL1;
-	regValueArray[AGCCTRL0_ADDRESS] = VAL_CC2500_AGCTRL0;
-	
-	regValueArray[FREND1_ADDRESS] = VAL_CC2500_FREND1;
-	regValueArray[FREND0_ADDRESS] = VAL_CC2500_FREND0;
-	regValueArray[FSCAL3_ADDRESS] = VAL_CC2500_FSCAL3;
-	regValueArray[FSCAL2_ADDRESS] = VAL_CC2500_FSCAL2;
-	regValueArray[FSCAL1_ADDRESS] = VAL_CC2500_FSCAL1;
-	regValueArray[FSCAL0_ADDRESS] = VAL_CC2500_FSCAL0;
-	
-	
-	regValueArray[FSTEST_ADDRESS] = VAL_CC2500_FSTEST;
-	
-	regValueArray[TEST2_ADDRESS] = VAL_CC2500_TEST2;
-	regValueArray[TEST1_ADDRESS] = VAL_CC2500_TEST1;
-	regValueArray[TEST0_ADDRESS] = VAL_CC2500_TEST0;
+	regValueArray[26] = VAL_CC2500_FREND1;
+	regValueArray[27] = VAL_CC2500_FREND0;
+	regValueArray[28] = VAL_CC2500_FSCAL3;
+	regValueArray[29] = VAL_CC2500_FSCAL2;
+	regValueArray[30] = VAL_CC2500_FSCAL1;
+	regValueArray[31] = VAL_CC2500_FSCAL0;
 	
 	
-	CC2500_Write(regValueArray, 0, NUM_REGISTERS_TO_INIT);
+	regValueArray[32] = VAL_CC2500_FSTEST;
 	
+	regValueArray[33] = VAL_CC2500_TEST2;
+	regValueArray[34] = VAL_CC2500_TEST1;
+	regValueArray[35] = VAL_CC2500_TEST0;
+	
+	CC2500_Write(&regValueArray[0], IOCFG2_ADDRESS, 1);
+	CC2500_Write(&regValueArray[1], IOCFG0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[2], FIFOTHR_ADDRESS, 1);
+	CC2500_Write(&regValueArray[3], PKTLEN_ADDRESS, 1);
+	CC2500_Write(&regValueArray[4], PKTCTRL1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[5], PKTCTRL0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[6], ADDR_ADDRESS, 1);
+	CC2500_Write(&regValueArray[7], CHANNR_ADDRESS, 1);
+	CC2500_Write(&regValueArray[8], FSCTRL1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[9], FSCTRL0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[10], FREQ2_ADDRESS, 1);
+	CC2500_Write(&regValueArray[11], FREQ1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[12], FREQ0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[13], MDMCFG4_ADDRESS, 1);
+	CC2500_Write(&regValueArray[14], MDMCFG3_ADDRESS, 1);
+	CC2500_Write(&regValueArray[15], MDMCFG2_ADDRESS, 1);
+	CC2500_Write(&regValueArray[16], MDMCFG1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[17], MDMCFG0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[18], DEVIATN_ADDRESS, 1);
+	CC2500_Write(&regValueArray[19], MCSM1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[20], MCSM0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[21], FOCCFG_ADDRESS, 1);
+	CC2500_Write(&regValueArray[22], BSCFG_ADDRESS, 1);
+	CC2500_Write(&regValueArray[23], AGCCTRL2_ADDRESS, 1);
+	CC2500_Write(&regValueArray[24], AGCCTRL1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[25], AGCCTRL0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[26], FREND1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[27], FREND0_ADDRESS, 1);
+	CC2500_Write(&regValueArray[28], FSCAL3_ADDRESS, 1);
+	CC2500_Write(&regValueArray[29], FSCAL2_ADDRESS, 1);
+	CC2500_Write(&regValueArray[30], FSCAL1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[31], FSCAL0_ADDRESS, 1);
+	
+	CC2500_Write(&regValueArray[32], FSTEST_ADDRESS, 1);
+	CC2500_Write(&regValueArray[33], TEST2_ADDRESS, 1);
+	CC2500_Write(&regValueArray[34], TEST1_ADDRESS, 1);
+	CC2500_Write(&regValueArray[35], TEST0_ADDRESS, 1);
+		
 	return 0;
 }
 

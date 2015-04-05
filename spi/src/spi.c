@@ -117,7 +117,8 @@ static uint8_t CC2500_SendByte(uint8_t byte){
   */
 uint8_t CC2500_Read(uint8_t* pBuffer, uint8_t ReadAddr, uint16_t NumByteToRead)
 {  
-  if(NumByteToRead > 0x01)
+  //if(NumByteToRead > 0x01 || ReadAddr >= 0x30)
+	if(NumByteToRead > 0x01)
   {
     ReadAddr |= (uint8_t)(READWRITE_CMD | MULTIPLEBYTE_CMD);
   }
@@ -179,7 +180,7 @@ uint8_t CC2500_Write(uint8_t* pBuffer, uint8_t WriteAddr, uint16_t NumByteToWrit
   }
   
   /* Send the Address of the indexed register */
-  CC2500_SendByte(WriteAddr);
+  statusByte = CC2500_SendByte(WriteAddr);
   /* Send the data that will be written into the device (MSB First) */
   while(NumByteToWrite >= 0x01)
   {

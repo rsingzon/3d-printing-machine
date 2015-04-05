@@ -16,24 +16,55 @@
  */
 int main (void) {
 	init_SPI1();
+	uint8_t statusByte;
+//		// Enable transmission on the CC2500
+	statusByte = CC2500_Reset();	
 	
 	// Initialize register values
 	CC2500_Init_Registers();
 	CC2500_Read_Registers();
 	
-	uint8_t statusByte;
+	
 	uint8_t readByte;
 	uint8_t numBytes = 1;
 		
-	// Enable transmission on the CC2500
-	statusByte = CC2500_Reset();	
-	statusByte = CC2500_Start_Receive();
+
+	//statusByte = CC2500_Reset();
+	
+	//statusByte = CC2500_Write(0, FLUSH_RX_FIFO_COMMAND, 0);
 	
 	uint8_t buffer[64];
 	
+	statusByte = CC2500_Start_Receive();
+	
+	while((statusByte & 0xF0) != 0x10){
+		statusByte = CC2500_No_Op();
+		printf("%d\n", statusByte);
+	}
+	
+	uint8_t bytesAvailable;
+	while((statusByte & 0xF0) == 0x10){
+		statusByte = CC2500_Read(&bytesAvailable, 0x3B, 2);
+		
+		if(bytesAvailable > 0){
+			statusByte = CC2500_Read(&readByte, 0xBF, 1);
+			printf("Data: %x\n", readByte);
+		}
+		
+		int k;
+		statusByte = CC2500_No_Op();
+	}
+	
+	printf("exited\n");
+	/*
 	statusByte = CC2500_Write(0,FLUSH_RX_FIFO_COMMAND,0); 
+	
 	statusByte = CC2500_Start_Receive();
+	
+	uint8_t bytesAvailable;
+	statusByte = CC2500_Read(&bytesAvailable, 0x3B, 2);
 	statusByte = CC2500_Read(buffer, 0xBF, 64);
+	statusByte = CC2500_Read(&readByte, 0xBF, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
@@ -41,18 +72,19 @@ int main (void) {
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	
 	statusByte = CC2500_Start_Receive();
-	statusByte = CC2500_Read(&readByte, 0xBF, 2);
+	statusByte = CC2500_Read(&readByte, 0xBF, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	
 	statusByte = CC2500_Start_Receive();
-	statusByte = CC2500_Read(&readByte, 0xBF, 2);
+	statusByte = CC2500_Read(&readByte, 0xBF, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	*/
 	
 	/*
 		
