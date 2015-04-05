@@ -15,7 +15,6 @@
  * main: initialize and start the system
  */
 int main (void) {
-	uint8_t received_val = 0;
 	init_SPI1();
 	
 	// Initialize register values
@@ -30,16 +29,32 @@ int main (void) {
 	statusByte = CC2500_Reset();	
 	statusByte = CC2500_Start_Receive();
 	
-	int count;
-	//for (count = 0; count < 1000; count++);
+	uint8_t buffer[64];
 	
-	statusByte = CC2500_Read(&readByte, 0x3D, 2);
+	statusByte = CC2500_Write(0,FLUSH_RX_FIFO_COMMAND,0); 
+	statusByte = CC2500_Start_Receive();
+	statusByte = CC2500_Read(buffer, 0xBF, 64);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
 	
-
-	// Read status byte
-	while((statusByte & 0xf0) != 0x10){
-		statusByte = CC2500_Read(&readByte, 0x3D, 2);
-	}
+	statusByte = CC2500_Start_Receive();
+	statusByte = CC2500_Read(&readByte, 0xBF, 2);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	
+	statusByte = CC2500_Start_Receive();
+	statusByte = CC2500_Read(&readByte, 0xBF, 2);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	statusByte = CC2500_Read(&readByte, NO_OP_COMMAND, 1);
+	
+	/*
 		
 	// Read 
 	statusByte = CC2500_Read(&readByte, 0xFB, 2);
@@ -52,7 +67,7 @@ int main (void) {
 	CC2500_Read(&readByte, 0xFB, 2);
 	
 	printf("Received String: %s\n", receivedString);
-	
+	*/
 	/*
 		while(bytesToRead > 0){
 			statusByte = CC2500_Read(&receivedByte, RX_FIFO_BYTE_ADDRESS, 1);
@@ -61,8 +76,6 @@ int main (void) {
 			CC2500_Read(&readByte, 0xFB, 2);
 		}
 	*/
-	
-	statusByte = CC2500_Read(&readByte, 0x3D, numBytes);
 	
 	// The number of byte available to read is contained in the last
 	// four bits of the status byte
