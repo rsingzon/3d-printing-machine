@@ -26,10 +26,11 @@ int main (void) {
 	
 	// Initialize register values
 	CC2500_Init_Registers();
-	CC2500_Read_Registers();	
 	
 	// Set the channel on which to transmit
 	statusByte = CC2500_Set_Channel(&channel);
+	
+	CC2500_Read_Registers();	
 
 	// Wait for the transceiver to enter transmitting mode
 	statusByte = CC2500_Start_Transmit();
@@ -48,8 +49,8 @@ int main (void) {
 		// Check that the transmitter is in the transmitting state
 		while((statusByte & 0xF0) == TRANSMITTING){
 						
-			// If data is available, transmit
-			statusByte = CC2500_Read(&bytesAvailable, BYTES_AVAILABLE_REG, 2);
+			// If the FIFO has space available available, transmit
+			statusByte = CC2500_Read(&bytesAvailable, TX_BYTES, 2);
 			
 			if(bytesAvailable < 5){
 				statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);

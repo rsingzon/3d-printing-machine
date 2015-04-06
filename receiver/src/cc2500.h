@@ -26,8 +26,8 @@
 #define IDLE									0x00
 
 // Register addresses
-#define BYTES_AVAILABLE_REG		0x3B			
-
+#define TX_BYTES							0x3A
+#define RX_BYTES							0x3B			
 
 #define NUM_REGISTERS_TO_INIT 	47
  
