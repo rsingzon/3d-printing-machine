@@ -98,7 +98,12 @@ void displayThreadDef(void const *argument){
 					case 3:
 						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     RIGHT          ");
 						break;
+					default:
+						break;
 				}
+				break;
+				
+			default:
 				break;
 		}
 		
