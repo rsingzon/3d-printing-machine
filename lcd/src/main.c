@@ -12,8 +12,32 @@
 #include "stm32f429i_discovery_l3gd20.h"
 #include "background16bpp.h"
 
+#include "keypad.h"
+
 #include <stdio.h>
 #include <string.h>
+
+/* State variable indicates what to write to display */
+/* 0 = Square; 1 = Rectangle; 2 = Triangle; 3 = free draw */
+int state;
+
+/* Direction variable keeps track of which direction free form drawing is going */
+/* 0 = UP; 1 = DOWN; 2 = LEFT ; 3 = RIGHT */
+int direction;
+
+//Thread prototypes
+void displayThreadDef(void const *argument);
+void keypadThreadDef(void const *argument);
+
+
+//Thread declarations
+osThreadDef(displayThreadDef, osPriorityNormal, 1, 0);
+osThreadDef(keypadThreadDef, osPriorityNormal, 1, 0);
+
+osThreadId display_thread;
+osThreadId keypad_thread;
+
+#define KEYPAD_FLAG 0x01
 
 
 static void delay(__IO uint32_t nCount)
@@ -24,167 +48,109 @@ static void delay(__IO uint32_t nCount)
   }
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
-  * @brief    Illustartes a simple shape draw and fill, and string dsiplay
-  * @function This function draws concentrated colour-filled circles. It also draw a square and a triangle. Some text at two
-              different font sizes is displayed.
-  * @param    None
-  * @retval   None
-  */
-
-void example_1a(void const *argument){
+void displayThreadDef(void const *argument){
 	while(1){
-		/* Clear the LCD */ 
-    LCD_Clear(LCD_COLOR_WHITE);
-	
-	  //The files source and header files implement drawing characters (drawing strings)
-	  //using different font sizes, see the file font.h for the four sizes
-    LCD_SetFont(&Font8x8);
-	  //The number of string lines avaialble is dependant on the font height:
-	  //A font height of 8 will result in 320 / 8 = 40 lines
-    LCD_DisplayStringLine(LINE(1), (uint8_t*)"      Welcome to uP lab     ");
-    LCD_DisplayStringLine(LINE(2), (uint8_t*)"          Good Luck         ");
-	  
-	  //The stm32f429i_discovery_lcd.h file offers functions which allows to draw various shapes
-	  //in either border or filled with colour. You can draw circles, rectangles, triangles, lines,
-	  //ellipses, and polygons. You can draw strings or characters, change background/foreground 
-	  //colours.
-	
-	  LCD_DrawLine(0, 32, 240, LCD_DIR_HORIZONTAL);
-	  LCD_DrawLine(0, 34, 240, LCD_DIR_HORIZONTAL);
-	  LCD_SetTextColor(LCD_COLOR_BLUE2); 
-	  LCD_DrawFullCircle(120, 160, 100);
-	  LCD_SetTextColor(LCD_COLOR_CYAN); 
-	  LCD_DrawFullCircle(120, 160, 90);
-	  LCD_SetTextColor(LCD_COLOR_YELLOW); 
-	  LCD_DrawFullCircle(120, 160, 80);
-	  LCD_SetTextColor(LCD_COLOR_RED); 
-	  LCD_DrawFullCircle(120, 160, 70);
-	  LCD_SetTextColor(LCD_COLOR_BLUE); 
-	  LCD_DrawFullCircle(120, 160, 60);
-	  LCD_SetTextColor(LCD_COLOR_GREEN); 
-	  LCD_DrawFullCircle(120, 160, 50);
-	  LCD_SetTextColor(LCD_COLOR_BLACK); 
-	  LCD_DrawFullCircle(120, 160, 40);
-		LCD_SetTextColor(LCD_COLOR_WHITE);
-		LCD_DrawRect(90,130,60,60);
-		LCD_SetTextColor(LCD_COLOR_MAGENTA);
-		LCD_FillTriangle(90, 120, 150, 130, 180, 130);
-		LCD_SetFont(&Font12x12);
-		LCD_DisplayStringLine(LINE(15), (uint8_t*)"      Success!    ");
-		
-		osDelay(250);
-	}
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
-  * @brief    Displays a bitmap image
-  * @function This function copies a bitmap image converted by STM32 Imager into an array "background16bpp.h" and stored
-in flash memory into the active buffer in SDRAM. The SDRAM has two layer buffer:
-              ->Background layer at address LCD_FRAME_BUFFER = 0xD0000000
-              ->Foreground layer at address LCD_FRAME_BUFFER + BUFFER_OFFSET = 0xD0000000 + 0x00050000
-              memcpy is a processor intiated and managed transfer. A more efficient way is to use DMA2D ChromeART acccelerator
-              Once the image is copied into the active buffer (which we set by LCD_SetLayer(LCD_FOREGROUND_LAYER) command ), the
-              LTDC updates the display when it continously refreshes the output display
-  * @param    None
-  * @retval   None
-  */
-
-void example_1b(void const *argument){
-	while(1){
-		memcpy ( (void *)(LCD_FRAME_BUFFER + BUFFER_OFFSET), (void *) &background, sizeof(background));
-		printf("hellow world\n");
-		osDelay(250);
-	}
-}
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-/**
-  * @brief    Illustartes a simple animation program
-  * @function This function draws concentrated circles emanating from the center towards the LCD edge in
-              an animated fashion. It will look as a sonar or radar display. Then it simulates locking 
-              onto a target by flashing a small red circle and displaying the text "Object located"
-  * @param    None
-  * @retval   None
-  */
-
-void example_1c(void const *argument){
-	while(1){
-			/* Clear the LCD */ 
+		// Clear the display and write group info at top
 		LCD_Clear(LCD_COLOR_WHITE);
 		LCD_SetFont(&Font8x8);
-		LCD_DisplayStringLine(LINE(1), (uint8_t*)"  Radar Scanning for Object  ");
+		LCD_SetTextColor(LCD_COLOR_BLACK);
+		LCD_DisplayStringLine(LINE(0), (uint8_t*)"           uP Group 3           ");
+		LCD_DrawLine(0, 12, 240, LCD_DIR_HORIZONTAL);
+		LCD_SetBackColor(LCD_COLOR_WHITE);
+		LCD_SetTextColor(LCD_COLOR_BLUE);
+		LCD_SetFont(&Font12x12);
 		
-		LCD_SetTextColor(LCD_COLOR_BLUE2);
-		LCD_DrawLine(10, 160, 220, LCD_DIR_HORIZONTAL);
-		LCD_DrawLine(120, 50, 220, LCD_DIR_VERTICAL );
-		
-		LCD_SetTextColor(LCD_COLOR_BLUE2);
-		LCD_DrawCircle(120, 160, 10);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 20);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 30);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 40);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 50);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 60);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 70);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 80);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 90);	
-		delay(35);
-		LCD_DrawCircle(120, 160, 100);	
-		delay(35);
-		LCD_SetTextColor(LCD_COLOR_RED);
-		LCD_DisplayStringLine(LINE(36), (uint8_t*)"        Object Located    ");
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_WHITE);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_RED);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_WHITE);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_RED);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_WHITE);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_RED);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_WHITE);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
-		LCD_SetTextColor(LCD_COLOR_RED);
-		LCD_DrawFullRect(90,130,10,10);
-		delay(25);
+		// Draw display based on current state
+		switch(state){
+			case 0 :
+				LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
+				LCD_DrawFullRect(95, 135, 50,50);
+				LCD_DisplayStringLine(LINE(20), (uint8_t*)"       SQUARE        ");
+				break;
+				
+			case 1:
+				LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
+				LCD_DrawFullRect(75, 135, 70,50);
+				LCD_DisplayStringLine(LINE(20), (uint8_t*)"     RECTANGLE        ");
+				break;
+			
+			case 2:
+				LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
+				LCD_FillTriangle(95, 120, 145, 185, 135, 185);
+				LCD_DisplayStringLine(LINE(20), (uint8_t*)"      TRIANGLE        ");
+				break;
+			
+			case 3:
+				LCD_SetFont(&Font8x8);
+				LCD_DisplayStringLine(LINE(5), (uint8_t*)"In free draw mode,     ");
+				LCD_DisplayStringLine(LINE(6), (uint8_t*)"current direction is:     ");
+				LCD_SetFont(&Font16x24);
+				switch(direction){
+					case 0:
+						LCD_DisplayStringLine(LINE(6), (uint8_t*)"      UP          ");
+						break;
+					case 1:
+						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     DOWN          ");
+						break;
+					case 2:
+						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     LEFT          ");
+						break;
+					case 3:
+						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     RIGHT          ");
+						break;
+				}
+				break;
+		}
 		
 		osDelay(250);
 	}
+	
 }
 
-osThreadDef(example_1a, osPriorityNormal, 1, 0);
-osThreadDef(example_1b, osPriorityNormal, 1, 0);
-osThreadDef(example_1c, osPriorityNormal, 1, 0);
+/**
+*@brief Thread to control keypad scanning/mode switching
+*/
+void keypadThreadDef(void const *argument){
+	while(1){
+		osSignalWait(KEYPAD_FLAG, osWaitForever);
+		char c = get_button_pressed();
+		if(c != 'e'){
+			printf("%c\n", c);
+			
+			// Change state/direction based on key pressed
+			switch(c){
+				case '1':
+					state = 0;
+					break;
+				case '2':
+					state =1;
+					break;
+				case '3':
+					state=2;
+					break;
+				case '4':
+					state=3;
+					break;
+				case '6':
+					direction=0;
+					break;
+				case '#':
+					direction=1;
+					break;
+				case '8':
+					direction=2;
+					break;
+				case 'C':
+					direction=3;
+					break;
+				default:
+					break;
+			}
+		}
+		osSignalClear(keypad_thread, KEYPAD_FLAG);
+	}
+}
 
-// ID for theads
-osThreadId example_1a_thread;
-osThreadId example_1b_thread;
-osThreadId example_1c_thread;
 
 /*
  * main: initialize and start the system
@@ -218,10 +184,28 @@ int main (void) {
 	********************************************************/
 	
 	//example_1a_thread = osThreadCreate(osThread(example_1a), NULL);
-	example_1b_thread = osThreadCreate(osThread(example_1b), NULL);
+	//example_1b_thread = osThreadCreate(osThread(example_1b), NULL);
 	//example_1c_thread = osThreadCreate(osThread(example_1c), NULL);
 	
+	state  = 3;
+	direction = 2;
+	display_thread = osThreadCreate(osThread(displayThreadDef), NULL);
+	
+	initKeypad();
+	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
+	
 	osKernelStart ();                         // start thread execution 
+}
+
+
+/**
+*@brief Interupt handler for EXTI10 to EXTI15.  Informs uP that a button on the keypad has been pressed
+*@retval None
+*/
+void EXTI15_10_IRQHandler(void)
+{
+	EXTI_ClearITPendingBit(EXTI_Line12|EXTI_Line13|EXTI_Line14|EXTI_Line15);
+	osSignalSet(keypad_thread, KEYPAD_FLAG);
 }
 
 
