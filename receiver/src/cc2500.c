@@ -51,6 +51,17 @@ uint8_t CC2500_No_Op(void){
 	return status;
 }
 
+ /**
+  * @brief  Sets the channel of the transceiver
+	* @param  Channel
+  * @retval Status
+  */
+uint8_t CC2500_Set_Channel(uint8_t *channel){
+	
+	uint8_t status = CC2500_Write(channel, CHANNR_ADDRESS, 1);
+	return status;
+}
+
 
  /**
   * @brief  Initializes the registers of the CC2500
@@ -140,23 +151,6 @@ uint8_t CC2500_Init_Registers(void){
 	CC2500_Write(&regValueArray[35], TEST0_ADDRESS, 1);
 		
 	return 0;
-}
-
-/**
-  * @brief  Sends a strobe command to the CC2500
-  * @retval Status
-  */
-uint8_t CC2500_Strobe(uint8_t command){
-	
-}
-
-/**
-  * @brief  Sends a burst command to the CC2500
-  * @retval Status
-  */
-uint8_t CC2500_Burst(uint8_t command, uint16_t bytesToWrite){
-	
-	
 }
 
 void CC2500_Read_Registers(void){

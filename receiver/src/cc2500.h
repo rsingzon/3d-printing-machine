@@ -166,8 +166,5 @@ uint8_t CC2500_Start_Transmit(void);
 uint8_t CC2500_Start_Receive(void);
 uint8_t CC2500_Reset(void);
 uint8_t CC2500_No_Op(void);
-
-uint8_t CC2500_Strobe(uint8_t command);
-uint8_t CC2500_Burst(uint8_t command, uint16_t bytesToWrite);
-
+uint8_t CC2500_Set_Channel(uint8_t *channel);
 #endif
