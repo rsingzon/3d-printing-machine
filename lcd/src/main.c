@@ -54,7 +54,7 @@ void displayThreadDef(void const *argument){
 		LCD_Clear(LCD_COLOR_WHITE);
 		LCD_SetFont(&Font8x8);
 		LCD_SetTextColor(LCD_COLOR_BLACK);
-		LCD_DisplayStringLine(LINE(0), (uint8_t*)"           uP Group 3           ");
+		LCD_DisplayStringLine(LINE(0), (uint8_t*)"          uP Group 3           ");
 		LCD_DrawLine(0, 12, 240, LCD_DIR_HORIZONTAL);
 		LCD_SetBackColor(LCD_COLOR_WHITE);
 		LCD_SetTextColor(LCD_COLOR_BLUE);
@@ -171,28 +171,15 @@ int main (void) {
   /* Set LCD foreground layer as the current layer */
   LCD_SetLayer(LCD_FOREGROUND_LAYER);
 	
+	// Initialize keypad
+	initKeypad();
 	
-	
-  // create 'thread' functions that start executing,
-  // example: tid_name = osThreadCreate (osThread(name), NULL);
-	
-	/*******************************************************
-	         Uncomment the example you want to see
-	example_1a: Simple shape draw, fill and text display
-	example_1b: bitmap image display
-	example_1c: Simple animation
-	********************************************************/
-	
-	//example_1a_thread = osThreadCreate(osThread(example_1a), NULL);
-	//example_1b_thread = osThreadCreate(osThread(example_1b), NULL);
-	//example_1c_thread = osThreadCreate(osThread(example_1c), NULL);
+	// Create threads
+	display_thread = osThreadCreate(osThread(displayThreadDef), NULL);
+	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
 	
 	state  = 3;
 	direction = 2;
-	display_thread = osThreadCreate(osThread(displayThreadDef), NULL);
-	
-	initKeypad();
-	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
 	
 	osKernelStart ();                         // start thread execution 
 }
