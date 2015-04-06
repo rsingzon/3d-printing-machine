@@ -18,19 +18,23 @@ int main (void) {
 	// Enable transmission on the CC2500
 	init_SPI1();
 	uint8_t statusByte;
-
+	uint8_t readByte;
+	uint8_t numBytes = 1;
+	uint8_t channel = 5;
+	
 	statusByte = CC2500_Reset();	
 	
 	// Initialize register values
 	CC2500_Init_Registers();
-	CC2500_Read_Registers();
 
-	uint8_t readByte;
-	uint8_t numBytes = 1;
-		
-	statusByte = CC2500_Start_Receive();
+	// Set the channel
+	statusByte = CC2500_Set_Channel(&channel);
 	
-	while((statusByte & 0xF0) != 0x10){
+	CC2500_Read_Registers();
+		
+	// Wait for the receiver to enter receive mode
+	statusByte = CC2500_Start_Receive();
+	while((statusByte & 0xF0) != RECEIVING){
 		statusByte = CC2500_No_Op();
 		printf("Status: %02x\n", statusByte);
 	}
@@ -41,8 +45,8 @@ int main (void) {
 	while(1){
 		
 		// Check that the receiver is in the receiving state
-		while((statusByte & 0xF0) == 0x10){
-			statusByte = CC2500_Read(&bytesAvailable, 0x3B, 2);
+		while((statusByte & 0xF0) == RECEIVING){
+			statusByte = CC2500_Read(&bytesAvailable, BYTES_AVAILABLE_REG, 2);
 			
 			// If data is available, print it
 			if(bytesAvailable > 0){
