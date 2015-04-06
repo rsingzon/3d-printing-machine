@@ -14,6 +14,9 @@
 
 #include "keypad.h"
 
+#include "../../receiver/src/spi.h"
+#include "../../receiver/src/cc2500.h"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -28,16 +31,20 @@ int direction;
 //Thread prototypes
 void displayThreadDef(void const *argument);
 void keypadThreadDef(void const *argument);
+void transmitterThreadDef(void const *argument);
 
 
 //Thread declarations
 osThreadDef(displayThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(keypadThreadDef, osPriorityNormal, 1, 0);
+osThreadDef(transmitterThreadDef, osPriorityNormal, 1, 0);
 
 osThreadId display_thread;
 osThreadId keypad_thread;
+osThreadId transmitterThread;
 
 #define KEYPAD_FLAG 0x01
+#define TRANSMITTER_FLAG 0x01
 
 
 static void delay(__IO uint32_t nCount)
@@ -156,6 +163,69 @@ void keypadThreadDef(void const *argument){
 	}
 }
 
+/*
+ * @Brief Thread to transmit instructions to the motor controller board
+ */
+void transmitterThreadDef(void const *argument){
+	// Enable SPI1
+	init_SPI1();
+	
+	// Variable definitions
+	uint8_t statusByte;
+	uint8_t readByte;
+	uint8_t numBytes = 1;
+	uint8_t channel = 5;
+
+	// Reset chip and initialize registers
+	statusByte = CC2500_Reset();	
+	CC2500_Init_Registers();
+	
+	// Set the channel on which to transmit
+	statusByte = CC2500_Set_Channel(&channel);
+	
+	// Print out the register values to ensure correctness
+	CC2500_Read_Registers();	
+
+	// Wait for the transceiver to enter transmitting mode
+	statusByte = CC2500_Start_Transmit();
+	
+	while((statusByte & 0xF0) != TRANSMITTING){
+		statusByte = CC2500_No_Op();
+		printf("Status: %02x\n", statusByte);
+	}
+	
+	uint8_t bytesAvailable;
+	uint8_t message = 0x7D;
+	
+	// Continuously write data from to the buffer
+	while(1){
+				
+		// Check that the transmitter is in the transmitting state
+		while((statusByte & 0xF0) == TRANSMITTING){
+						
+			// If the FIFO has space available available, transmit
+			statusByte = CC2500_Read(&bytesAvailable, TX_BYTES, 2);
+			
+			if(bytesAvailable < 5){
+				statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);
+				printf("Data sent: %02x\n", message);
+			}
+			
+			statusByte = CC2500_No_Op();
+		}	
+		
+		// Put the receiver back in receiving state
+		statusByte = CC2500_Start_Transmit();
+		
+		// Wait for the receiver to enter the correct state
+		while((statusByte & 0xF0) != TRANSMITTING){
+			statusByte = CC2500_No_Op();
+		}
+		
+		osDelay(250);
+	}
+}
+
 
 /*
  * main: initialize and start the system
@@ -182,7 +252,8 @@ int main (void) {
 	// Create threads
 	display_thread = osThreadCreate(osThread(displayThreadDef), NULL);
 	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
-	
+	transmitterThread = osThreadCreate(osThread(transmitterThreadDef), NULL);
+		
 	state  = 3;
 	direction = 2;
 	
