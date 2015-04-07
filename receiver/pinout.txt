@@ -4,3 +4,7 @@ PA3  - Pin 17 (Chip select) - Green Wire
 PA5  - Pin 16 (SCK)  - Yellow Wire
 PA6  - Pin 15 (MISO) - Orange Wire
 PA7  - Pin 18 (MOSI) - Blue Wire
+
+PB4 	LEFT MOTOR
+PB6	RIGHT MOTOR
+PB14	BACK MOTOR
