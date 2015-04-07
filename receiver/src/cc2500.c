@@ -37,7 +37,7 @@ uint8_t CC2500_Start_Receive(void){
   */
 uint8_t CC2500_Reset(void){
 	
-	uint8_t status = CC2500_Write(0,RESET_COMMAND,0); 
+	uint8_t status = CC2500_Write(0,RESET_CC2500_COMMAND,0); 
 	return status;
 }
 

@@ -22,16 +22,18 @@
 #include <string.h>
 
 /* Mode variable indicates predetermined shapes or on the fly */
-/* 0 = shapes; 1 = on the fly */
-int mode;
+/* 0 = shapes; 1 = on the fly; 2 = reset position */
+uint8_t mode;
 
 // Shape variable selects the shape
 /* 0 = Square; 1 = Rectangle; 2 = Triangle;*/
-int shape;
+uint8_t shape;
 
 /* Direction variable keeps track of which direction free form drawing is going */
 /* 0 = UP; 1 = DOWN; 2 = LEFT ; 3 = RIGHT */
-int direction;
+uint8_t direction;
+uint8_t freeDrawing[DIRECTION_BUFFER_SIZE];
+int numDirections = 0;
 
 //Thread prototypes
 void displayThreadDef(void const *argument);
@@ -102,16 +104,16 @@ void displayThreadDef(void const *argument){
 			LCD_SetFont(&Font16x24);	
 			
 			switch(direction){
-					case 0:
+					case UP:
 						LCD_DisplayStringLine(LINE(6), (uint8_t*)"      UP          ");
 						break;
-					case 1:
+					case DOWN:
 						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     DOWN          ");
 						break;
-					case 2:
+					case LEFT:
 						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     LEFT          ");
 						break;
-					case 3:
+					case RIGHT:
 						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     RIGHT          ");
 						break;
 					default:
@@ -154,23 +156,53 @@ void keypadThreadDef(void const *argument){
 					break;
 				case '6':
 					direction = UP;
+					// Insert the direction into the direction buffer 
+					if(numDirections < DIRECTION_BUFFER_SIZE){
+						freeDrawing[numDirections] = UP;
+						numDirections++;
+					}
 					break;
 				case '#':
 					direction = DOWN;
+					// Insert the direction into the direction buffer 
+					if(numDirections < DIRECTION_BUFFER_SIZE){
+						freeDrawing[numDirections] = DOWN;
+						numDirections++;
+					}
 					break;
 				case '8':
 					direction = LEFT;
+					// Insert the direction into the direction buffer 
+					if(numDirections < DIRECTION_BUFFER_SIZE){
+						freeDrawing[numDirections] = LEFT;
+						numDirections++;
+					}
 					break;
 				case 'C':
 					direction = RIGHT;
+					// Insert the direction into the direction buffer 
+					if(numDirections < DIRECTION_BUFFER_SIZE){
+						freeDrawing[numDirections] = RIGHT;
+						numDirections++;
+					}
 					break;
+				
+				// Signal the transmitter thread to send a command to the other board
+				case 'D':
+					osSignalSet(transmitterThread, TRANSMITTER_FLAG);
+					break;
+				
+				// Resets the arm back to its original position and clears the free draw buffer
+				case '*':
+					mode = RESET_MODE;
+					osSignalSet(transmitterThread, TRANSMITTER_FLAG);
+					break;
+				
 				default:
 					break;
 			}
 		}
-		
-		// Signal the transmitter thread to send a command to the other board
-		osSignalSet(transmitterThread, TRANSMITTER_FLAG);
+	
 		osSignalClear(keypad_thread, KEYPAD_FLAG);
 	}
 }
@@ -218,17 +250,28 @@ void transmitterThreadDef(void const *argument){
 			osSignalWait(TRANSMITTER_FLAG, osWaitForever);
 			
 			// If the FIFO has space available available, transmit
-			statusByte = CC2500_Read(&bytesAvailable, TX_BYTES, 2);
+			//statusByte = CC2500_Read(&bytesAvailable, TX_BYTES, 2);
+			//if(bytesAvailable < 5){
+			//	statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);
+			//	printf("Data sent: %02x\n", message);
+			//}
 			
-			
-			
-			if(bytesAvailable < 5){
-				statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);
-				printf("Data sent: %02x\n", message);
+			// Send either a shape or on the fly directions
+			if(mode == SHAPE_MODE){
+				sendShape(shape);
+			}
+			else if(mode == FREE_DRAW_MODE){
+				sendFreeDraw(freeDrawing);
 			}
 			
-			statusByte = CC2500_No_Op();
+			// Reset the position of the arm and reset mode
+			else{
+				resetPosition();
+				mode = SHAPE_MODE;
+			}
 			
+			// Make sure the transmitter is still in transmitting mode
+			statusByte = CC2500_No_Op();
 			osSignalClear(transmitterThread, TRANSMITTER_FLAG);
 		}	
 		
