@@ -13,6 +13,7 @@
 #include "background16bpp.h"
 
 #include "keypad.h"
+#include "commands.h"
 
 #include "../../receiver/src/spi.h"
 #include "../../receiver/src/cc2500.h"
@@ -132,33 +133,36 @@ void keypadThreadDef(void const *argument){
 			// Change state/direction based on key pressed
 			switch(c){
 				case '1':
-					state = 0;
+					state = TRIANGLE;
 					break;
 				case '2':
-					state =1;
+					state = SQUARE;
 					break;
 				case '3':
-					state=2;
+					state = RECTANGLE;
 					break;
 				case '4':
-					state=3;
+					state = FREE_DRAW_MODE;
 					break;
 				case '6':
-					direction=0;
+					direction = UP;
 					break;
 				case '#':
-					direction=1;
+					direction = DOWN;
 					break;
 				case '8':
-					direction=2;
+					direction = LEFT;
 					break;
 				case 'C':
-					direction=3;
+					direction = RIGHT;
 					break;
 				default:
 					break;
 			}
 		}
+		
+		// Signal the transmitter thread to send a command to the other board
+		osSignalSet(transmitterThread, TRANSMITTER_FLAG);
 		osSignalClear(keypad_thread, KEYPAD_FLAG);
 	}
 }
@@ -197,14 +201,18 @@ void transmitterThreadDef(void const *argument){
 	uint8_t bytesAvailable;
 	uint8_t message = 0x7D;
 	
-	// Continuously write data from to the buffer
 	while(1){
 				
 		// Check that the transmitter is in the transmitting state
 		while((statusByte & 0xF0) == TRANSMITTING){
-						
+			
+			// Wait until the user has pressed a button on the keypad
+			osSignalWait(TRANSMITTER_FLAG, osWaitForever);
+			
 			// If the FIFO has space available available, transmit
 			statusByte = CC2500_Read(&bytesAvailable, TX_BYTES, 2);
+			
+			
 			
 			if(bytesAvailable < 5){
 				statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);
@@ -212,6 +220,8 @@ void transmitterThreadDef(void const *argument){
 			}
 			
 			statusByte = CC2500_No_Op();
+			
+			osSignalClear(transmitterThread, TRANSMITTER_FLAG);
 		}	
 		
 		// Put the receiver back in receiving state
