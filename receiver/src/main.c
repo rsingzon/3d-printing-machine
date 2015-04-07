@@ -133,34 +133,53 @@ void rightMotorThreadDef(void const *argument){
  * main: initialize and start the system
  */
 int main (void) {
+//	osKernelInitialize();
+//	
+//	servo_init();
+//	
+//	
+//	leftMotorThread = osThreadCreate(osThread(leftMotorThreadDef), NULL);
+//	rightMotorThread = osThreadCreate(osThread(rightMotorThreadDef), NULL);
+//	
+//	uint32_t leftMotorTimerType = 1;
+//	leftMotorTimer = osTimerCreate (osTimer(leftMotorDef), osTimerPeriodic, &leftMotorTimerType);
+//	
+//	leftMotorDelay = 10;
+//	osTimerStart (leftMotorTimer, leftMotorDelay); 
+//	
+//	uint32_t rightMotorTimerType = 1;
+//	rightMotorTimer = osTimerCreate (osTimer(rightMotorDef), osTimerPeriodic, &rightMotorTimerType);
+//	
+//	rightMotorDelay = 10;
+//	osTimerStart (rightMotorTimer, rightMotorDelay); 
+//	
+//	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
+//	
+//	osKernelStart();
+
+
 	osKernelInitialize();
-	
 	servo_init();
 	
-	osDelay(10000);
-	getAngles(&left_angle, &right_angle, 0, 150);
+	osDelay(2000);
 	
-	leftMotorThread = osThreadCreate(osThread(leftMotorThreadDef), NULL);
-	rightMotorThread = osThreadCreate(osThread(rightMotorThreadDef), NULL);
+	movePen(3.0, 10.4);
 	
-	uint32_t leftMotorTimerType = 1;
-	leftMotorTimer = osTimerCreate (osTimer(leftMotorDef), osTimerPeriodic, &leftMotorTimerType);
+	osDelay(2000);
 	
-	leftMotorDelay = 10;
-	osTimerStart (leftMotorTimer, leftMotorDelay); 
+	movePen(3.0, 7.4);
 	
-	uint32_t rightMotorTimerType = 1;
-	rightMotorTimer = osTimerCreate (osTimer(rightMotorDef), osTimerPeriodic, &rightMotorTimerType);
+	osDelay(2000);
 	
-	rightMotorDelay = 10;
-	osTimerStart (rightMotorTimer, rightMotorDelay); 
+	movePen(-3.0, 7.4);
 	
-	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
+	osDelay(2000);
 	
-	osKernelStart();
+	movePen(-3.0, 10.4);
 	
-	osDelay(10000);
-	getAngles(&left_angle, &right_angle, 0, 50);
+	osDelay(2000);
+	
+	movePen(0, 10.4);
 }
 
 void leftMotorCallback(void const *argument){

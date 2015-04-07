@@ -109,47 +109,89 @@ int servo_init(){
 	TIM_SetCompare1(TIM12, 780);
 	
 
-	TIM_SetCompare1(LEFT_MOTOR, NINETY_DEGREE_PULSE);
-	TIM_SetCompare1(RIGHT_MOTOR, NINETY_DEGREE_PULSE);
-	
-	int i;
-	while(i<1000){i++;}
+	// Initialize pen to (0, 10.4);
+	movePen(0, 10.4);
 	
 	return 0;
 }
 
-void getAngles(int *leftAngle, int *rightAngle, float x, float y){
-	double left_beta, right_beta, left_alpha, right_alpha;
-	
-	if(x>1.9){
-		left_beta = atan(y/(x+1.9));
-		right_beta = 180 - atan(y/(x-1.9));
-	}
-	else if(x<-1.9){
-		left_beta = 180 - atan(y/(abs(x)-1.9));
-		right_beta = atan(y/(abs(x)+1.9));
-	}
-	else if(x<=0){
-		left_beta = atan(y/(1.9-abs(x)));
-		right_beta = atan(y/(abs(x)+1.9));
-	}
-	else{
-		left_beta = atan(y/(x+1.9));
-		right_beta = atan(y/(1.9-x));
-	}
-	
-	int cl = sqrt(pow((x+1.9), 2)+ pow(y,2));
-	int cr = sqrt(pow((x-1.9), 2) + pow(y,2));
-	
-	left_alpha = acos((pow(6.5, 2)+pow(cl, 2) - pow(7, 2))/(2*6.5*cl));
-	right_alpha = acos((pow(6.5, 2)+pow(cr, 2) - pow(7, 2))/(2*6.5*cr));
-	
-	*leftAngle = (int) left_beta + left_alpha;
-	*rightAngle = (int) right_beta + right_alpha;
-	
-	
+// Moves pen to (x,y)
+void movePen(float x, float y){
+	double leftAngle, rightAngle;
+	getAngles(&leftAngle, &rightAngle, x, y);
+	TIM_SetCompare1(RIGHT_MOTOR, getPulse(rightAngle));
+	TIM_SetCompare1(LEFT_MOTOR, getPulse(leftAngle));
 }
 
+void getAngles(double *leftAngle, double *rightAngle, float x, float y){
+	double ab, ad, ac, dx, dy, h, cx1, cx2, cy1, cy2;
+	
+	ab = sqrt(pow(x+1.9,2) + pow(y, 2));
+	
+	// If ab>ac+bc or ab<|ac-bc| circles do not intersect
+	if(ab>13.5 || ab<0){
+		printf("Invalid point\n");
+		return;
+	}
+	
+	
+	
+	// Find Left Motor Angle
+	ad = (pow(ab,2) + pow(6.5,2) - pow(7,2))/(2*ab);
+	h = sqrt(pow(6.5,2)-pow(ad,2));
+	dx = -1.9 + ad*(x+1.9)/ab;
+	dy = 0 + ad*(y)/ab;
+	cx1 = dx + h*(y)/ab;
+	cx2 = dx - h*(y)/ab;
+	cy1 = dy - h*(x+1.9)/ab;
+	cy2 = dy + h*(x+1.9)/ab;
+	
+	// Choose c with lesser x value
+	if(cx2<cx1){
+		cx1=cx2;
+		cy1=cy2;
+	}
+	
+	// Compute result and store in leftAngle
+	if(cx1 < -1.9){
+		*leftAngle = radiansToDegrees(atan(cy1/(abs(cx1)-1.9)));
+	}
+	else if (cx1 < 0){
+		*leftAngle = 180 - radiansToDegrees(atan(cy1/(1.9-cx1)));
+	}
+	else {
+		*leftAngle = 180 - radiansToDegrees(atan(cy1/(cx1+1.9)));
+	}
+	
+	// Find Right Motor Angle
+	dx = 1.9 + ad*(x-1.9)/ab;
+	cx1 = dx + h*(y)/ab;
+	cx2 = dx - h*(y)/ab;
+	cy1 = dy - h*(x+1.9)/ab;
+	cy2 = dy + h*(x+1.9)/ab;
+	
+	// Choose c with greater x value
+	if(cx2>cx1){
+		cx1=cx2;
+		cy1=cy2;
+	}
+	
+	if(cx1>1.9){
+		*rightAngle = 180 - radiansToDegrees(atan(cy1/(cx1-1.9)));
+	}
+	else if (cx1>0){
+		*rightAngle = radiansToDegrees(atan(cy1/(1.9-cx1)));
+	}
+	else{
+		*rightAngle = radiansToDegrees(atan(cy1/(abs(cx1)+1.9)));
+	}
+}
+
+double radiansToDegrees(double radians){
+	return radians * (180.0 / 3.14);
+}
+
+// Converts angle in degrees to duty cycle corresponding to that pulse width
 int getPulse(int angle){
 	return 180 + angle*(600/180);
 }

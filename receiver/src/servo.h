@@ -18,5 +18,7 @@
 
 
 int servo_init(void);
-void getAngles(int *leftAngle, int *rightAngle, float x, float y);
+void movePen(float x, float y);
+void getAngles(double *leftAngle, double *rightAngle, float x, float y);
+double radiansToDegrees(double radians);
 int getPulse(int angle);
