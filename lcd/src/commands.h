@@ -16,11 +16,12 @@
 #include "../../receiver/src/cc2500.h"
 
 // Define shapes and directions
-#define TRIANGLE		(uint8_t) 0x00
-#define SQUARE			(uint8_t) 0x01
-#define RECTANGLE		(uint8_t) 0x02
+#define SQUARE			(uint8_t) 0x00
+#define RECTANGLE		(uint8_t) 0x01
+#define TRIANGLE		(uint8_t) 0x02
 
-#define FREE_DRAW_MODE	(uint8_t) 0x03
+#define SHAPE_MODE	(uint8_t) 0x00
+#define FREE_DRAW_MODE	(uint8_t) 0x01
 
 #define UP					(uint8_t) 0x00
 #define DOWN				(uint8_t) 0x01

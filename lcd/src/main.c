@@ -21,9 +21,13 @@
 #include <stdio.h>
 #include <string.h>
 
-/* State variable indicates what to write to display */
-/* 0 = Square; 1 = Rectangle; 2 = Triangle; 3 = free draw */
-int state;
+/* Mode variable indicates predetermined shapes or on the fly */
+/* 0 = shapes; 1 = on the fly */
+int mode;
+
+// Shape variable selects the shape
+/* 0 = Square; 1 = Rectangle; 2 = Triangle;*/
+int shape;
 
 /* Direction variable keeps track of which direction free form drawing is going */
 /* 0 = UP; 1 = DOWN; 2 = LEFT ; 3 = RIGHT */
@@ -68,32 +72,36 @@ void displayThreadDef(void const *argument){
 		LCD_SetTextColor(LCD_COLOR_BLUE);
 		LCD_SetFont(&Font12x12);
 		
-		// Draw display based on current state
-		switch(state){
-			case 0 :
-				LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
-				LCD_DrawFullRect(95, 135, 50,50);
-				LCD_DisplayStringLine(LINE(20), (uint8_t*)"       SQUARE        ");
-				break;
+		// Draw display based on current mode
+		
+		if(mode == SHAPE_MODE){
+			switch(shape){
+				case SQUARE:
+					LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
+					LCD_DrawFullRect(95, 135, 50,50);
+					LCD_DisplayStringLine(LINE(20), (uint8_t*)"       SQUARE        ");
+					break;
+					
+				case RECTANGLE:
+					LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
+					LCD_DrawFullRect(75, 135, 70,50);
+					LCD_DisplayStringLine(LINE(20), (uint8_t*)"     RECTANGLE        ");
+					break;
 				
-			case 1:
-				LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
-				LCD_DrawFullRect(75, 135, 70,50);
-				LCD_DisplayStringLine(LINE(20), (uint8_t*)"     RECTANGLE        ");
-				break;
+				case TRIANGLE:
+					LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
+					LCD_FillTriangle(95, 120, 145, 185, 135, 185);
+					LCD_DisplayStringLine(LINE(20), (uint8_t*)"      TRIANGLE        ");
+					break;
+			}
+		}
+		else{
+			LCD_SetFont(&Font8x8);
+			LCD_DisplayStringLine(LINE(5), (uint8_t*)"In free draw mode,     ");
+			LCD_DisplayStringLine(LINE(6), (uint8_t*)"current direction is:     ");
+			LCD_SetFont(&Font16x24);	
 			
-			case 2:
-				LCD_DisplayStringLine(LINE(5), (uint8_t*)"Now drawing :     ");
-				LCD_FillTriangle(95, 120, 145, 185, 135, 185);
-				LCD_DisplayStringLine(LINE(20), (uint8_t*)"      TRIANGLE        ");
-				break;
-			
-			case 3:
-				LCD_SetFont(&Font8x8);
-				LCD_DisplayStringLine(LINE(5), (uint8_t*)"In free draw mode,     ");
-				LCD_DisplayStringLine(LINE(6), (uint8_t*)"current direction is:     ");
-				LCD_SetFont(&Font16x24);
-				switch(direction){
+			switch(direction){
 					case 0:
 						LCD_DisplayStringLine(LINE(6), (uint8_t*)"      UP          ");
 						break;
@@ -109,12 +117,7 @@ void displayThreadDef(void const *argument){
 					default:
 						break;
 				}
-				break;
-				
-			default:
-				break;
-		}
-		
+		}		
 		osDelay(250);
 	}
 	
@@ -133,16 +136,21 @@ void keypadThreadDef(void const *argument){
 			// Change state/direction based on key pressed
 			switch(c){
 				case '1':
-					state = TRIANGLE;
+					shape = SQUARE;
 					break;
 				case '2':
-					state = SQUARE;
+					shape = RECTANGLE;
 					break;
 				case '3':
-					state = RECTANGLE;
+					shape = TRIANGLE;
 					break;
 				case '4':
-					state = FREE_DRAW_MODE;
+					if(mode == FREE_DRAW_MODE){
+						mode = SHAPE_MODE;
+					}
+					else{
+						mode = FREE_DRAW_MODE;
+					}
 					break;
 				case '6':
 					direction = UP;
@@ -264,8 +272,10 @@ int main (void) {
 	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
 	transmitterThread = osThreadCreate(osThread(transmitterThreadDef), NULL);
 		
-	state  = 3;
-	direction = 2;
+	// Set default mode
+	mode = SHAPE_MODE;
+	shape = SQUARE;
+	direction = UP;
 	
 	osKernelStart ();                         // start thread execution 
 }
