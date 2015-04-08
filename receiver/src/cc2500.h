@@ -11,7 +11,7 @@
 #define __CC2500_H
 
 // Configuration registers
-#define RESET_COMMAND					0x30
+#define RESET_CC2500_COMMAND	0x30
 #define CALIBRATE_COMMAND			0x33
 #define RECEIVE_COMMAND				0x34
 #define TRANSMIT_COMMAND			0x35
