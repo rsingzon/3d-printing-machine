@@ -46,7 +46,7 @@ int main (void) {
 		
 		// Check that the receiver is in the receiving state
 		while((statusByte & 0xF0) == RECEIVING){
-			statusByte = CC2500_Read(&bytesAvailable, BYTES_AVAILABLE_REG, 2);
+			statusByte = CC2500_Read(&bytesAvailable, RX_BYTES, 2);
 			
 			// If data is available, print it
 			if(bytesAvailable > 0){
