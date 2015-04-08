@@ -24,10 +24,10 @@
 #define FREE_DRAW_MODE		(uint8_t) 0x01
 #define RESET_MODE				(uint8_t) 0x02
 
-#define UP								(uint8_t) 0x00
-#define DOWN							(uint8_t) 0x01
-#define LEFT							(uint8_t) 0x02
-#define RIGHT							(uint8_t) 0x03
+#define UP								(uint8_t) 0x50
+#define DOWN							(uint8_t) 0x51
+#define LEFT							(uint8_t) 0x52
+#define RIGHT							(uint8_t) 0x53
 
 #define DIRECTION_BUFFER_SIZE	64
 
@@ -45,7 +45,7 @@
 
 // Function prototypes
 uint8_t sendShape(uint8_t shape);
-uint8_t sendFreeDraw(uint8_t *directions);
+uint8_t sendFreeDraw(uint8_t direction);
 uint8_t resetPosition(void);
 
 #endif

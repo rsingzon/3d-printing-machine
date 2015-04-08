@@ -78,6 +78,11 @@ char get_button_pressed(){
 		reset_GPIO();
 		return 'e';
 	}
+	dbCounter = 0;
+	while(dbCounter<1000){
+		if(!buttonPressed())
+			dbCounter++;
+	}
 	reset_GPIO();
 	
 	char c = getValue(col, row);
@@ -264,16 +269,16 @@ int char_to_int(char c){
 }
 
 int buttonPressed(){
-	if(!GPIO_ReadInputDataBit(GPIOE, COL1)){
+	if(!GPIO_ReadInputDataBit(GPIOE, ROW1)){
 		return 1;
 	}
-	else if(!GPIO_ReadInputDataBit(GPIOE, COL2)){
+	else if(!GPIO_ReadInputDataBit(GPIOE, ROW2)){
 		return 1;
 	}
-	else if(!GPIO_ReadInputDataBit(GPIOE, COL3)){
+	else if(!GPIO_ReadInputDataBit(GPIOE, ROW3)){
 		return 1;
 	}
-	else if(!GPIO_ReadInputDataBit(GPIOE, COL4)){
+	else if(!GPIO_ReadInputDataBit(GPIOE, ROW4)){
 		return 1;
 	}
 	return 0;

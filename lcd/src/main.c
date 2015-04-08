@@ -32,8 +32,12 @@ uint8_t shape;
 /* Direction variable keeps track of which direction free form drawing is going */
 /* 0 = UP; 1 = DOWN; 2 = LEFT ; 3 = RIGHT */
 uint8_t direction;
-uint8_t freeDrawing[DIRECTION_BUFFER_SIZE];
+uint8_t linesDrawn[DIRECTION_BUFFER_SIZE];
 int numDirections = 0;
+
+// Define mutexes
+osMutexDef(Mutex_Directions);				
+osMutexId num_directions_mutex;
 
 //Thread prototypes
 void displayThreadDef(void const *argument);
@@ -63,6 +67,7 @@ static void delay(__IO uint32_t nCount)
 }
 
 void displayThreadDef(void const *argument){
+	
 	while(1){
 		// Clear the display and write group info at top
 		LCD_Clear(LCD_COLOR_WHITE);
@@ -100,27 +105,85 @@ void displayThreadDef(void const *argument){
 		else{
 			LCD_SetFont(&Font8x8);
 			LCD_DisplayStringLine(LINE(5), (uint8_t*)"In free draw mode,     ");
-			LCD_DisplayStringLine(LINE(6), (uint8_t*)"current direction is:     ");
+			LCD_DisplayStringLine(LINE(6), (uint8_t*)"Shape:     ");
 			LCD_SetFont(&Font16x24);	
 			
+			
+			// Starting point: 90, 240
+			int count = 0;
+			uint16_t x_start = 90;
+			uint16_t y_start = 240;
+			uint16_t length = 40;
+			
 			switch(direction){
-					case UP:
-						LCD_DisplayStringLine(LINE(6), (uint8_t*)"      UP          ");
-						break;
-					case DOWN:
-						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     DOWN          ");
-						break;
-					case LEFT:
-						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     LEFT          ");
-						break;
-					case RIGHT:
-						LCD_DisplayStringLine(LINE(6), (uint8_t*)"     RIGHT          ");
-						break;
-					default:
-						break;
-				}
+				case UP:
+					y_start -= length;
+					LCD_DrawLine(x_start, y_start, length, LCD_DIR_VERTICAL);
+					break;
+				case DOWN:
+					LCD_DrawLine(x_start, y_start, length, LCD_DIR_VERTICAL);
+					break;
+				case LEFT:
+					x_start -= length;
+					LCD_DrawLine(x_start, y_start, length, LCD_DIR_HORIZONTAL);
+					break;
+				case RIGHT:
+					LCD_DrawLine(x_start, y_start, length, LCD_DIR_HORIZONTAL);
+					break;
+				default:
+					break;
+			}
+			
+			
+//			
+//			// Display lines that have not been drawn on the page
+//			int count = 0;
+//			uint16_t x_start = 90;
+//			uint16_t y_start = 240;
+//			uint16_t length = 40;
+//			
+//			LCD_DrawLine(x_start, y_start, length, LCD_DIR_HORIZONTAL);
+//			
+//			
+//			while(linesDrawn[count] != 0){
+//				
+//				uint8_t line = linesDrawn[count];
+//				uint8_t direction;
+//				
+//				// Choose the direction of the line
+//				if(line == UP || line == DOWN){
+//					direction = LCD_DIR_VERTICAL;
+//				} else{
+//					direction = LCD_DIR_HORIZONTAL;
+//				}
+//				
+//				// Draw the line
+//				LCD_DrawLine(x_start, y_start, length, direction);
+//				
+//				// Move the line from the lineSelected to lineDrawn buffer
+//				
+//				
+//				// Update starting point for the next line segment
+//				switch(line){
+//					case UP:
+//						y_start -= length;
+//						break;
+//					case DOWN:
+//						y_start += length;
+//						break;
+//					case LEFT:
+//						x_start -= length;
+//						break;
+//					case RIGHT:
+//						x_start += length;
+//						break;
+//				}
+//				
+//				count++;
+//			}
+					
 		}		
-		osDelay(250);
+		osDelay(300);
 	}
 	
 }
@@ -156,39 +219,26 @@ void keypadThreadDef(void const *argument){
 					break;
 				case '6':
 					direction = UP;
-					// Insert the direction into the direction buffer 
-					if(numDirections < DIRECTION_BUFFER_SIZE){
-						freeDrawing[numDirections] = UP;
-						numDirections++;
-					}
 					break;
 				case '#':
 					direction = DOWN;
-					// Insert the direction into the direction buffer 
-					if(numDirections < DIRECTION_BUFFER_SIZE){
-						freeDrawing[numDirections] = DOWN;
-						numDirections++;
-					}
 					break;
 				case '8':
 					direction = LEFT;
-					// Insert the direction into the direction buffer 
-					if(numDirections < DIRECTION_BUFFER_SIZE){
-						freeDrawing[numDirections] = LEFT;
-						numDirections++;
-					}
 					break;
 				case 'C':
 					direction = RIGHT;
-					// Insert the direction into the direction buffer 
-					if(numDirections < DIRECTION_BUFFER_SIZE){
-						freeDrawing[numDirections] = RIGHT;
-						numDirections++;
-					}
 					break;
 				
 				// Signal the transmitter thread to send a command to the other board
 				case 'D':
+				
+					// If the mode is on the fly, then save the direction into the direction buffer
+					if(mode == FREE_DRAW_MODE){
+						linesDrawn[numDirections] = direction;
+						numDirections++;
+					}
+				
 					osSignalSet(transmitterThread, TRANSMITTER_FLAG);
 					break;
 				
@@ -203,9 +253,9 @@ void keypadThreadDef(void const *argument){
 			}
 		}
 		
-		else{
-			printf("keypad error?\n");
-		}
+//		else{
+//			printf("keypad error?\n");
+//		}
 	
 		osSignalClear(keypad_thread, KEYPAD_FLAG);
 	}
@@ -222,7 +272,7 @@ void transmitterThreadDef(void const *argument){
 	uint8_t statusByte;
 	uint8_t readByte;
 	uint8_t numBytes = 1;
-	uint8_t channel = 5;
+	uint8_t channel = CHANNEL;
 
 	// Reset chip and initialize registers
 	statusByte = CC2500_Reset();	
@@ -265,7 +315,7 @@ void transmitterThreadDef(void const *argument){
 				sendShape(shape);
 			}
 			else if(mode == FREE_DRAW_MODE){
-				sendFreeDraw(freeDrawing);
+				sendFreeDraw(direction);
 			}
 			
 			// Reset the position of the arm and reset mode
