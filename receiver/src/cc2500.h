@@ -10,6 +10,9 @@
 #ifndef __CC2500_H
 #define __CC2500_H
 
+// Channel
+#define CHANNEL								5
+
 // Configuration registers
 #define RESET_CC2500_COMMAND	0x30
 #define CALIBRATE_COMMAND			0x33

@@ -14,7 +14,9 @@
 
 #define LEFT_MOTOR_FLAG 0x01
 #define RIGHT_MOTOR_FLAG 0x01
+#define RECEIVER_FLAG 0x01
 
+uint32_t receiverDelay;
 uint32_t leftMotorDelay;
 uint32_t rightMotorDelay;
 
@@ -28,12 +30,15 @@ osThreadDef(receiverThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(leftMotorThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(rightMotorThreadDef, osPriorityNormal, 1, 0);
 
-
 osThreadId receiverThread;
 osThreadId leftMotorThread;
 osThreadId rightMotorThread;
 
 // Timer declarations
+void receiverCallback(void const *argument);
+osTimerDef (receiverDef, receiverCallback);
+osTimerId receiverTimer;
+
 void leftMotorCallback(void const *argument);
 osTimerDef (leftMotorDef, leftMotorCallback);
 osTimerId leftMotorTimer;
@@ -51,18 +56,16 @@ void receiverThreadDef(void const *argument){
 	init_SPI1();
 	uint8_t statusByte;
 	uint8_t readByte;
+	uint8_t readCommand[8];
 	uint8_t numBytes = 1;
-	uint8_t channel = 5;
+	uint8_t channel = CHANNEL;
 	
 	statusByte = CC2500_Reset();	
 	
-	// Initialize register values
+	// Initialize register values and set channel
 	CC2500_Init_Registers();
-
-	// Set the channel
 	statusByte = CC2500_Set_Channel(&channel);
-	
-	CC2500_Read_Registers();
+	//CC2500_Read_Registers();
 		
 	// Wait for the receiver to enter receive mode
 	statusByte = CC2500_Start_Receive();
@@ -78,15 +81,24 @@ void receiverThreadDef(void const *argument){
 		
 		// Check that the receiver is in the receiving state
 		while((statusByte & 0xF0) == RECEIVING){
-			statusByte = CC2500_Read(&bytesAvailable, RX_BYTES, 2);
+			
+			osSignalWait(LEFT_MOTOR_FLAG, osWaitForever);
+			statusByte = CC2500_Read(&bytesAvailable, 0x7B, 1);
+			
+			printf("Bytes available: %d\n", bytesAvailable);
 			
 			// If data is available, print it
 			if(bytesAvailable > 0){
-				statusByte = CC2500_Read(&readByte, 0xBF, 1);
+				statusByte = CC2500_Read(&readByte, RX_FIFO_BYTE_ADDRESS, 1);
 				printf("Data: %02x\n", readByte);
+				
+				//statusByte = CC2500_Read(readCommand, RX_FIFO_BURST_ADDRESS, 8);
+				//printf("Data: %d %d %d %d %d %d %d %d\n", readCommand[0],readCommand[1],readCommand[2],readCommand[3],readCommand[4],readCommand[5],readCommand[6],readCommand[7]);
 			}
-			
+						
 			statusByte = CC2500_No_Op();
+			
+			osSignalWait(LEFT_MOTOR_FLAG, osWaitForever);
 		}	
 		
 		// Put the receiver back in receiving state
@@ -133,8 +145,8 @@ void rightMotorThreadDef(void const *argument){
  * main: initialize and start the system
  */
 int main (void) {
-//	osKernelInitialize();
-//	
+	osKernelInitialize();
+	
 //	servo_init();
 //	
 //	
@@ -152,6 +164,12 @@ int main (void) {
 //	
 //	rightMotorDelay = 10;
 //	osTimerStart (rightMotorTimer, rightMotorDelay); 
+
+//	uint32_t receiverTimerType = 1;
+//	receiverTimer = osTimerCreate (osTimer(receiverDef), osTimerPeriodic, &receiverTimerType);
+//	
+//	receiverDelay = 100;
+//	osTimerStart (receiverTimer, receiverDelay);	
 //	
 //	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
 //	
@@ -180,6 +198,10 @@ int main (void) {
 	osDelay(2000);
 	
 	movePen(0, 10.4);
+}
+
+void receiverCallback(void const *argument){
+	osSignalSet(receiverThread, RECEIVER_FLAG);
 }
 
 void leftMotorCallback(void const *argument){
