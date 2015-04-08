@@ -15,11 +15,20 @@
 uint8_t sendShape(uint8_t shape){
 	uint8_t statusByte;
 	uint8_t message;
+	uint8_t bigMessage[8];
 	
 	// Send a message containing the shape being sent
 	switch(shape){
 		case TRIANGLE:
 			message = TRIANGLE_COMMAND;
+			bigMessage[0] = 20;
+			bigMessage[1] = 21;
+			bigMessage[2] = 22;
+			bigMessage[3] = 23;
+			bigMessage[4] = 24;
+			bigMessage[5] = 25;
+			bigMessage[6] = 26;
+			bigMessage[7] = 27;
 			break;
 		
 		case SQUARE:
@@ -31,7 +40,8 @@ uint8_t sendShape(uint8_t shape){
 			break;
 	}
 	
-	statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);	
+	//statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);	
+	statusByte = CC2500_Write(bigMessage, TX_FIFO_BURST_ADDRESS, 8);
 	
 	return statusByte;
 }
