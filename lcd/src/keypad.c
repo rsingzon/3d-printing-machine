@@ -73,7 +73,7 @@ char get_button_pressed(){
 	int row = getRow();
 	
 	int dbCounter=0;
-	while(dbCounter<500){dbCounter++;}
+	while(dbCounter<1000){dbCounter++;}
 	if(getRow()!=row){
 		reset_GPIO();
 		return 'e';
