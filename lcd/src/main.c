@@ -133,7 +133,7 @@ void keypadThreadDef(void const *argument){
 		osSignalWait(KEYPAD_FLAG, osWaitForever);
 		char c = get_button_pressed();
 		if(c != 'e'){
-			printf("%c\n", c);
+			//printf("%c\n", c);
 			
 			// Change state/direction based on key pressed
 			switch(c){
@@ -201,6 +201,10 @@ void keypadThreadDef(void const *argument){
 				default:
 					break;
 			}
+		}
+		
+		else{
+			printf("keypad error?\n");
 		}
 	
 		osSignalClear(keypad_thread, KEYPAD_FLAG);
