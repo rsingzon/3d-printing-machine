@@ -8,9 +8,7 @@ int servo_init(){
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM12, ENABLE);						// TIM2 clock enable
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM3, ENABLE);						// TIM3 clock enable
 	RCC_APB1PeriphClockCmd(RCC_APB1Periph_TIM4, ENABLE);						// TIM4 clock enable
-	
-	/* GPIOB clock enable*/
-	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);
+	RCC_AHB1PeriphClockCmd(RCC_AHB1Periph_GPIOB, ENABLE);						// GPIOB clock enable
 	
 	/* GPIO Configuration: TIM12 CH2 (PB3) */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_14;
@@ -19,9 +17,7 @@ int servo_init(){
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);	
-	
-	/* Assign GPIO pin to TIM 2 alternate function */
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_TIM12);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource14, GPIO_AF_TIM12);				// Assign to TIM12 alternate function
 	
 	/* GPIO Configuration: TIM3 CH1 (PB4) */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
@@ -30,9 +26,7 @@ int servo_init(){
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);	
-
-	/* Assign GPIO pin to TIM 3 alternate function */
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_TIM3);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource4, GPIO_AF_TIM3);					// Assign to TIM3 alternate function
 	
 	/* GPIO Configuration: TIM4 CH1 (PB6) */
 	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6;
@@ -41,21 +35,18 @@ int servo_init(){
 	GPIO_InitStructure.GPIO_OType = GPIO_OType_PP;
 	GPIO_InitStructure.GPIO_PuPd = GPIO_PuPd_UP ;
 	GPIO_Init(GPIOB, &GPIO_InitStructure);	
-	
-	/* Assign GPIO pin to TIM 2 alternate function */
-	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_TIM4);
+	GPIO_PinAFConfig(GPIOB, GPIO_PinSource6, GPIO_AF_TIM4);					// Assign to TIM3 alternate function
 	
 	TIM_TimeBaseInitTypeDef  TIM_TimeBaseStructure;
  	uint16_t prescaler, period;
 
-	/*
-	 * TIM3 counter clock frequency = 315000
-	 * Prescaler = (TIM3CLK / TIM3 counter clock frequency) - 1
-	 * sysctemcorecolock freq = 168 MHz
-	 * TIM3 clock freq = 84 MHz
-	 * with TIM_period = 2100, the PWM output frequency is
-	 * TIM4 counter clock frequency / TIM_period = 315000 / 6300 = 50Hz
-	 */
+/*
+	*	AHB1 clock frequency = 42MHz
+	* SystemCoreClock = 168MHz
+	*	prescaler = ((168M/2)/315000)-1 = 265.67
+	* period = 6300
+	* Frequency = AHB1 clock / prescaler / period = 25 Hz
+*/
 	prescaler = (uint16_t) ((SystemCoreClock / 2) / 315000) - 1;
 	period = 6300;
 
@@ -66,48 +57,33 @@ int servo_init(){
   TIM_TimeBaseStructure.TIM_CounterMode = TIM_CounterMode_Up;	
 	
 	TIM_TimeBaseInit(TIM12, &TIM_TimeBaseStructure);												// Initialize TIM2 timer
-	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);												// Initialize TIM3 timer
-	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);												// Initialize TIM4 timer
+	TIM_TimeBaseInit(TIM3, &TIM_TimeBaseStructure);													// Initialize TIM3 timer
+	TIM_TimeBaseInit(TIM4, &TIM_TimeBaseStructure);													// Initialize TIM4 timer
 	
-	/* idenpendent PWM mode 1*/
-	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;
-	/* output compare state enabled, ebable the comparasion between counter and puls value*/
-  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;
-	/* Output polarity high, when counter < puls value, set the output polarity high*/
-  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;
-	/* Set CCR1 to 0 degree at initial*/
-	//*** TO BE CHANGED*****
-	TIM_OCInitStructure.TIM_Pulse = NINETY_DEGREE_PULSE;
+	TIM_OCInitStructure.TIM_OCMode = TIM_OCMode_PWM1;												// Output Compare = Independent PWM Mode
+  TIM_OCInitStructure.TIM_OutputState = TIM_OutputState_Enable;						// Enable output state comparison
+  TIM_OCInitStructure.TIM_OCPolarity = TIM_OCPolarity_High;								// When counter < pulse value -> output high
+	TIM_OCInitStructure.TIM_Pulse = NINETY_DEGREE_PULSE;										// Load ninety degree pulse into register
 
 	TIM_OC1Init(TIM12, &TIM_OCInitStructure);															// Enable PWM on TIM2
 	TIM_OC1Init(TIM3, &TIM_OCInitStructure);															// Enable PWM on TIM3
 	TIM_OC1Init(TIM4, &TIM_OCInitStructure);															// Enable PWM on TIM4
 	
 	
-	/* Enable the prereload of CCR1 register, which controls the duty circly of PWM */
-	TIM_OC1PreloadConfig(TIM12, TIM_OCPreload_Enable);
-	/* Enable the prereload of TIM2_ARR register, which defermines the frequency of PWM */
-	TIM_ARRPreloadConfig(TIM12, ENABLE);
-	/* TIM2 enable counter */
-	TIM_Cmd(TIM12, ENABLE);
+	// Configure motor control timers
+	TIM_OC1PreloadConfig(TIM12, TIM_OCPreload_Enable);										// Preload OC1 register, which holds duty cycle
+	TIM_ARRPreloadConfig(TIM12, ENABLE);																	// Preload ARR register, which holds PWM frequency
+	TIM_Cmd(TIM12, ENABLE);																								// Enable timer
 	
-	/* Enable the prereload of CCR1 register, which controls the duty circly of PWM */
+	// Same for TIM3
 	TIM_OC1PreloadConfig(TIM3, TIM_OCPreload_Enable);
-	/* Enable the prereload of TIM2_ARR register, which defermines the frequency of PWM */
 	TIM_ARRPreloadConfig(TIM3, ENABLE);
-	/* TIM2 enable counter */
 	TIM_Cmd(TIM3, ENABLE);
 	
-	/* Enable the prereload of CCR1 register, which controls the duty circly of PWM */
+	// Same for TIM4
 	TIM_OC1PreloadConfig(TIM4, TIM_OCPreload_Enable);
-	/* Enable the prereload of TIM2_ARR register, which defermines the frequency of PWM */
 	TIM_ARRPreloadConfig(TIM4, ENABLE);
-	/* TIM2 enable counter */
 	TIM_Cmd(TIM4, ENABLE);
-	
-	//*****Making this 480 turns the angle to 90 degree position, 180  ---> 0 degree, 780 ---> 180 degree
-	TIM_SetCompare1(TIM12, 780);
-	
 
 	// Initialize pen to (0, 10.4);
 	movePen(0, 10.4);
@@ -119,8 +95,74 @@ int servo_init(){
 void movePen(float x, float y){
 	double leftAngle, rightAngle;
 	getAngles(&leftAngle, &rightAngle, x, y);
+	printf("%lf, %lf\n", leftAngle, rightAngle);
 	TIM_SetCompare1(RIGHT_MOTOR, getPulse(rightAngle));
 	TIM_SetCompare1(LEFT_MOTOR, getPulse(leftAngle));
+}
+
+void drawSquare(){
+	movePen(0.0, 8.4);
+	
+	osDelay(2000);
+	
+	movePen(-1.0, 8.4);
+	
+	osDelay(2000);
+	
+	movePen(-1.0, 6.4);
+	
+	osDelay(2000);
+	
+	movePen(1.0, 6.4);
+	
+	osDelay(2000);
+	
+	movePen(1.0, 8.4);
+	
+	osDelay(2000);
+	
+	movePen(0, 8.4);
+}
+
+void drawRectangle(){
+	movePen(0.0, 8.4);
+	
+	osDelay(2000);
+	
+	movePen(-2.0, 8.4);
+	
+	osDelay(2000);
+	
+	movePen(-2.0, 7.0 );
+	
+	osDelay(2000);
+	
+	movePen(1.2, 7.2);
+	
+	osDelay(2000);
+	
+	movePen(1.5, 8.25);
+	
+	osDelay(2000);
+	
+	movePen(0, 8.4);
+	
+}
+
+void drawTriangle(){
+	movePen(0.0, 8.0);
+	
+	osDelay(2000);
+	
+	movePen(-2.0, 6.0);
+	
+	osDelay(2000);
+	
+	movePen(1.2, 6.0);
+	
+	osDelay(2000);
+	
+	movePen(0.0, 8.0);
 }
 
 void getAngles(double *leftAngle, double *rightAngle, float x, float y){
@@ -133,8 +175,6 @@ void getAngles(double *leftAngle, double *rightAngle, float x, float y){
 		printf("Invalid point\n");
 		return;
 	}
-	
-	
 	
 	// Find Left Motor Angle
 	ad = (pow(ab,2) + pow(6.5,2) - pow(7,2))/(2*ab);

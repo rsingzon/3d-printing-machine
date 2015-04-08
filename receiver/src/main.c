@@ -12,35 +12,12 @@
 #include "cc2500.h"
 #include "servo.h"
 
-#define LEFT_MOTOR_FLAG 0x01
-#define RIGHT_MOTOR_FLAG 0x01
-
-uint32_t leftMotorDelay;
-uint32_t rightMotorDelay;
-
 // Thread prototypes
 void receiverThreadDef(void const *argument);
-void leftMotorThreadDef(void const *argument);
-void rightMotorThreadDef(void const *argument);
 
 // Thread declarations
 osThreadDef(receiverThreadDef, osPriorityNormal, 1, 0);
-osThreadDef(leftMotorThreadDef, osPriorityNormal, 1, 0);
-osThreadDef(rightMotorThreadDef, osPriorityNormal, 1, 0);
-
-
 osThreadId receiverThread;
-osThreadId leftMotorThread;
-osThreadId rightMotorThread;
-
-// Timer declarations
-void leftMotorCallback(void const *argument);
-osTimerDef (leftMotorDef, leftMotorCallback);
-osTimerId leftMotorTimer;
-
-void rightMotorCallback(void const *argument);
-osTimerDef (rightMotorDef, rightMotorCallback);
-osTimerId rightMotorTimer;
 
 
 /*
@@ -102,90 +79,19 @@ void receiverThreadDef(void const *argument){
 	
 }
 
-// Left motor thread
-static int left_angle;
-void leftMotorThreadDef(void const *argument){
-	while(1){
-		osSignalWait(LEFT_MOTOR_FLAG, osWaitForever);
-		
-		TIM_SetCompare1(LEFT_MOTOR, left_angle);
-		
-		osSignalClear(leftMotorThread, LEFT_MOTOR_FLAG);
-	}
-}
-
-// Right motor thread
-static int right_angle;
-void rightMotorThreadDef(void const *argument){
-	while(1){
-		osSignalWait(RIGHT_MOTOR_FLAG, osWaitForever);
-		
-		
-		TIM_SetCompare1(RIGHT_MOTOR, right_angle);
-		
-		
-		osSignalClear(rightMotorThread, RIGHT_MOTOR_FLAG);
-	}
-}
-
 
 /*
  * main: initialize and start the system
  */
+
 int main (void) {
-//	osKernelInitialize();
-//	
-//	servo_init();
-//	
-//	
-//	leftMotorThread = osThreadCreate(osThread(leftMotorThreadDef), NULL);
-//	rightMotorThread = osThreadCreate(osThread(rightMotorThreadDef), NULL);
-//	
-//	uint32_t leftMotorTimerType = 1;
-//	leftMotorTimer = osTimerCreate (osTimer(leftMotorDef), osTimerPeriodic, &leftMotorTimerType);
-//	
-//	leftMotorDelay = 10;
-//	osTimerStart (leftMotorTimer, leftMotorDelay); 
-//	
-//	uint32_t rightMotorTimerType = 1;
-//	rightMotorTimer = osTimerCreate (osTimer(rightMotorDef), osTimerPeriodic, &rightMotorTimerType);
-//	
-//	rightMotorDelay = 10;
-//	osTimerStart (rightMotorTimer, rightMotorDelay); 
-//	
-//	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
-//	
-//	osKernelStart();
-
-
 	osKernelInitialize();
+	
 	servo_init();
 	
-	osDelay(2000);
 	
-	movePen(3.0, 10.4);
+	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
 	
-	osDelay(2000);
-	
-	movePen(3.0, 7.4);
-	
-	osDelay(2000);
-	
-	movePen(-3.0, 7.4);
-	
-	osDelay(2000);
-	
-	movePen(-3.0, 10.4);
-	
-	osDelay(2000);
-	
-	movePen(0, 10.4);
-}
+	osKernelStart();
 
-void leftMotorCallback(void const *argument){
-	osSignalSet(leftMotorThread, LEFT_MOTOR_FLAG);
-}
-
-void rightMotorCallback(void const *argument){
-	osSignalSet(rightMotorThread, RIGHT_MOTOR_FLAG);
 }
