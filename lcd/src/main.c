@@ -121,32 +121,62 @@ void displayThreadDef(void const *argument){
 				uint8_t line = linesDrawn[count];
 				uint8_t direction;
 				
-				// Choose the direction of the line
-				if(line == UP || line == DOWN){
-					direction = LCD_DIR_VERTICAL;
-				} else{
-					direction = LCD_DIR_HORIZONTAL;
+				// If the line is not diagonal
+				if(line == UP || line == DOWN || line == LEFT || line == RIGHT){
+					
+					// Choose the direction of the line
+					if(line == UP || line == DOWN){
+						direction = LCD_DIR_VERTICAL;
+					} else{
+						direction = LCD_DIR_HORIZONTAL;
+					}
+					
+					// Draw the line
+					switch(line){
+						case UP:
+							y_start -= length;
+							break;
+						case LEFT:
+							x_start -= length;
+							break;
+					}
+					LCD_DrawLine(x_start, y_start, length, direction);			
+					
+					// Update starting point for the next line segment
+					switch(line){
+						case DOWN:
+							y_start += length;
+							break;
+						case RIGHT:
+							x_start += length;
+							break;
+					}
 				}
 				
-				// Draw the line
-				switch(line){
-					case UP:
-						y_start -= length;
-						break;
-					case LEFT:
-						x_start -= length;
-						break;
-				}
-				LCD_DrawLine(x_start, y_start, length, direction);			
 				
-				// Update starting point for the next line segment
-				switch(line){
-					case DOWN:
-						y_start += length;
-						break;
-					case RIGHT:
-						x_start += length;
-						break;
+				// The line IS diagonal
+				else{
+					uint16_t x_end = x_start;
+					uint16_t y_end = y_start;
+					switch(direction){
+						case UP_LEFT:
+							x_end -= length;
+							y_end -= length;
+							break;
+						case UP_RIGHT:
+							x_end += length;
+							y_end -= length;
+							break;
+						case DOWN_LEFT:
+							x_end -= length;
+							y_end += length;
+							break;
+						case DOWN_RIGHT:
+							x_end += length;
+							y_end += length;
+							break;
+					}
+					LCD_DrawUniLine(x_start, y_start, x_end, y_end);
 				}
 				count++;
 			}
@@ -155,6 +185,9 @@ void displayThreadDef(void const *argument){
 			// Display a flashing line that has not yet been sent to the page
 			int x_draw = x_start;
 			int y_draw = y_start;
+			int x_end = x_start;
+			int y_end = y_start;
+			
 			int x_clear = x_start;
 			int y_clear = y_start;
 			switch(direction){
@@ -171,6 +204,27 @@ void displayThreadDef(void const *argument){
 					break;
 				case RIGHT:
 					LCD_DrawLine(x_draw, y_draw, length, LCD_DIR_HORIZONTAL);
+					break;
+				
+				case UP_LEFT:
+					x_end -= length;
+					y_end -= length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
+					break;
+				case UP_RIGHT:
+					x_end += length;
+					y_end -= length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
+					break;
+				case DOWN_LEFT:
+					x_end -= length;
+					y_end += length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
+					break;
+				case DOWN_RIGHT:
+					x_end += length;
+					y_end += length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
 					break;
 				default:
 					break;
@@ -194,6 +248,27 @@ void displayThreadDef(void const *argument){
 					break;
 				case RIGHT:
 					LCD_DrawLine(x_clear, y_clear, length, LCD_DIR_HORIZONTAL);
+					break;
+				
+				case UP_LEFT:
+					x_end -= length;
+					y_end -= length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
+					break;
+				case UP_RIGHT:
+					x_end += length;
+					y_end -= length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
+					break;
+				case DOWN_LEFT:
+					x_end -= length;
+					y_end += length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
+					break;
+				case DOWN_RIGHT:
+					x_end += length;
+					y_end += length;
+					LCD_DrawUniLine(x_draw, y_draw, x_end, y_end);
 					break;
 				default:
 					break;
@@ -244,9 +319,21 @@ void keypadThreadDef(void const *argument){
 				case 'C':
 					direction = RIGHT;
 					break;
+				case '5':
+					direction = UP_LEFT;
+					break;
+				case 'B':
+					direction = UP_RIGHT;
+					break;
+				case 'D':
+					direction = DOWN_RIGHT;
+					break;
+				case '0':
+					direction = DOWN_LEFT;
+					break;
 				
 				// Signal the transmitter thread to send a command to the other board
-				case 'D':			
+				case '9':			
 					// If the mode is on the fly, then save the direction into the direction buffer
 					if(mode == FREE_DRAW_MODE){
 						linesDrawn[numDirections] = direction;
