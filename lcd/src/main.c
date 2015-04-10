@@ -109,89 +109,98 @@ void displayThreadDef(void const *argument){
 			LCD_DisplayStringLine(LINE(6), (uint8_t*)"Shape:     ");
 			LCD_SetFont(&Font16x24);	
 			
-			
-			// Starting point: 90, 240
+
 			int count = 0;
-			uint16_t x_start = 90;
-			uint16_t y_start = 240;
-			uint16_t length = 40;
+			uint16_t x_start = 120;
+			uint16_t y_start = 200;
+			uint16_t length = 30;		
+
+			// Display lines that have already been drawn on the page
+			while(linesDrawn[count] != 0){
+				
+				uint8_t line = linesDrawn[count];
+				uint8_t direction;
+				
+				// Choose the direction of the line
+				if(line == UP || line == DOWN){
+					direction = LCD_DIR_VERTICAL;
+				} else{
+					direction = LCD_DIR_HORIZONTAL;
+				}
+				
+				// Draw the line
+				switch(line){
+					case UP:
+						y_start -= length;
+						break;
+					case LEFT:
+						x_start -= length;
+						break;
+				}
+				LCD_DrawLine(x_start, y_start, length, direction);			
+				
+				// Update starting point for the next line segment
+				switch(line){
+					case DOWN:
+						y_start += length;
+						break;
+					case RIGHT:
+						x_start += length;
+						break;
+				}
+				count++;
+			}
 			
+			
+			// Display a flashing line that has not yet been sent to the page
+			int x_draw = x_start;
+			int y_draw = y_start;
+			int x_clear = x_start;
+			int y_clear = y_start;
 			switch(direction){
 				case UP:
-					y_start -= length;
-					LCD_DrawLine(x_start, y_start, length, LCD_DIR_VERTICAL);
+					y_draw -= length;
+					LCD_DrawLine(x_draw, y_draw, length, LCD_DIR_VERTICAL);
 					break;
 				case DOWN:
-					LCD_DrawLine(x_start, y_start, length, LCD_DIR_VERTICAL);
+					LCD_DrawLine(x_draw, y_draw, length, LCD_DIR_VERTICAL);
 					break;
 				case LEFT:
-					x_start -= length;
-					LCD_DrawLine(x_start, y_start, length, LCD_DIR_HORIZONTAL);
+					x_draw -= length;
+					LCD_DrawLine(x_draw, y_draw, length, LCD_DIR_HORIZONTAL);
 					break;
 				case RIGHT:
-					LCD_DrawLine(x_start, y_start, length, LCD_DIR_HORIZONTAL);
+					LCD_DrawLine(x_draw, y_draw, length, LCD_DIR_HORIZONTAL);
 					break;
 				default:
 					break;
 			}
 			
-			
-//			
-//			// Display lines that have not been drawn on the page
-//			int count = 0;
-//			uint16_t x_start = 90;
-//			uint16_t y_start = 240;
-//			uint16_t length = 40;
-//			
-//			LCD_DrawLine(x_start, y_start, length, LCD_DIR_HORIZONTAL);
-//			
-//			
-//			while(linesDrawn[count] != 0){
-//				
-//				uint8_t line = linesDrawn[count];
-//				uint8_t direction;
-//				
-//				// Choose the direction of the line
-//				if(line == UP || line == DOWN){
-//					direction = LCD_DIR_VERTICAL;
-//				} else{
-//					direction = LCD_DIR_HORIZONTAL;
-//				}
-//				
-//				// Draw the line
-//				LCD_DrawLine(x_start, y_start, length, direction);
-//				
-//				// Move the line from the lineSelected to lineDrawn buffer
-//				
-//				
-//				// Update starting point for the next line segment
-//				switch(line){
-//					case UP:
-//						y_start -= length;
-//						break;
-//					case DOWN:
-//						y_start += length;
-//						break;
-//					case LEFT:
-//						x_start -= length;
-//						break;
-//					case RIGHT:
-//						x_start += length;
-//						break;
-//				}
-//				
-//				count++;
-//			}
-					
+			// Wait 300ms and clear the last segment
+			osDelay(300);
+
+			LCD_SetTextColor(LCD_COLOR_WHITE);
+			switch(direction){
+				case UP:
+					y_clear -= length;
+					LCD_DrawLine(x_clear, y_clear, length, LCD_DIR_VERTICAL);
+					break;
+				case DOWN:
+					LCD_DrawLine(x_clear, y_clear, length, LCD_DIR_VERTICAL);
+					break;
+				case LEFT:
+					x_clear -= length;
+					LCD_DrawLine(x_clear, y_clear, length, LCD_DIR_HORIZONTAL);
+					break;
+				case RIGHT:
+					LCD_DrawLine(x_clear, y_clear, length, LCD_DIR_HORIZONTAL);
+					break;
+				default:
+					break;
+			}		
 		}		
 		osDelay(300);
-		
-		if(flash_display){
-			LCD_Clear(LCD_COLOR_WHITE);
-			osDelay(300);
-		}
 	}
-	
 }
 
 /**
@@ -237,10 +246,7 @@ void keypadThreadDef(void const *argument){
 					break;
 				
 				// Signal the transmitter thread to send a command to the other board
-				case 'D':
-					
-					flash_display = 0;
-				
+				case 'D':			
 					// If the mode is on the fly, then save the direction into the direction buffer
 					if(mode == FREE_DRAW_MODE){
 						linesDrawn[numDirections] = direction;
@@ -311,14 +317,7 @@ void transmitterThreadDef(void const *argument){
 			
 			// Wait until the user has pressed a button on the keypad
 			osSignalWait(TRANSMITTER_FLAG, osWaitForever);
-			
-			// If the FIFO has space available available, transmit
-			//statusByte = CC2500_Read(&bytesAvailable, TX_BYTES, 2);
-			//if(bytesAvailable < 5){
-			//	statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS , 1);
-			//	printf("Data sent: %02x\n", message);
-			//}
-			
+						
 			// Send either a shape or on the fly directions
 			if(mode == SHAPE_MODE){
 				sendShape(shape);
