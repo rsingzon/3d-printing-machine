@@ -87,6 +87,8 @@ int servo_init(){
 	TIM_Cmd(TIM4, ENABLE);
 
 	// Initialize pen to (0, 10.4);
+	liftPen();
+	osDelay(500);
 	movePen(0, 10.4);
 	
 	return 0;
@@ -118,7 +120,11 @@ void lowerPen(){
 }
 
 void drawSquare(){
+	liftPen();
+	osDelay(500);
 	movePen(0.0, 8.4);
+	osDelay(500);
+	lowerPen();
 	
 	osDelay(2000);
 	
@@ -143,7 +149,11 @@ void drawSquare(){
 }
 
 void drawRectangle(){
+	liftPen();
+	osDelay(500);
 	movePen(0.0, 8.4);
+	osDelay(500);
+	lowerPen();
 	
 	osDelay(2000);
 	
@@ -167,7 +177,11 @@ void drawRectangle(){
 }
 
 void drawTriangle(){
-	movePen(0.0, 8.0);
+	liftPen();
+	osDelay(500);
+	movePen(0.0, 8.4);
+	osDelay(500);
+	lowerPen();
 	
 	osDelay(2000);
 	
