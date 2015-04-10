@@ -29,6 +29,11 @@
 #define LEFT							(uint8_t) 0x52
 #define RIGHT							(uint8_t) 0x53
 
+#define UP_LEFT						(uint8_t) 0x61
+#define UP_RIGHT					(uint8_t) 0x62
+#define DOWN_LEFT					(uint8_t) 0x63
+#define DOWN_RIGHT				(uint8_t) 0x64
+
 #define DIRECTION_BUFFER_SIZE	64
 
 // Define commands to send to the controller board
