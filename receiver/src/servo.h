@@ -13,6 +13,7 @@
 #define SERVO_GPIO GPIOB
 #define LEFT_MOTOR TIM3
 #define RIGHT_MOTOR TIM4
+#define BACK_MOTOR TIM12
 
 #define ALL_MOTORS GPIO_Pin_4|GPIO_Pin_6|GPIO_Pin_14
 

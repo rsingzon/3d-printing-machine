@@ -110,11 +110,11 @@ void movePen(float x, float y){
 }
 
 void liftPen(){
-	// TODO
+	TIM_SetCompare1(BACK_MOTOR, NINETY_DEGREE_PULSE);
 }
 
 void lowerPen(){
-	// TODO
+	TIM_SetCompare1(BACK_MOTOR, ZERO_DEGREE_PULSE);
 }
 
 void drawSquare(){
