@@ -158,7 +158,7 @@ void displayThreadDef(void const *argument){
 				else{
 					uint16_t x_end = x_start;
 					uint16_t y_end = y_start;
-					switch(direction){
+					switch(line){
 						case UP_LEFT:
 							x_end -= length;
 							y_end -= length;
@@ -177,6 +177,10 @@ void displayThreadDef(void const *argument){
 							break;
 					}
 					LCD_DrawUniLine(x_start, y_start, x_end, y_end);
+					
+					// Update starting point for the next line segment
+					x_start = x_end;
+					y_start = y_end;
 				}
 				count++;
 			}
