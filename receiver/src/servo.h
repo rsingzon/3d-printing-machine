@@ -20,9 +20,19 @@
 
 int servo_init(void);
 void movePen(float x, float y);
+void liftPen(void);
+void lowerPen(void);
 void drawSquare(void);
 void drawRectangle(void);
 void drawTriangle(void);
+void moveUp(void);
+void moveDown(void);
+void moveLeft(void);
+void moveRight(void);
+void moveUpRight(void);
+void moveDownRight(void);
+void moveDownLeft(void);
+void moveUpLeft(void);
 void getAngles(double *leftAngle, double *rightAngle, float x, float y);
 double radiansToDegrees(double radians);
 int getPulse(int angle);

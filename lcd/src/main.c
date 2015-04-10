@@ -29,6 +29,8 @@ uint8_t mode;
 /* 0 = Square; 1 = Rectangle; 2 = Triangle;*/
 uint8_t shape;
 
+uint8_t flash_display=1;
+
 /* Direction variable keeps track of which direction free form drawing is going */
 /* 0 = UP; 1 = DOWN; 2 = LEFT ; 3 = RIGHT */
 uint8_t direction;
@@ -70,7 +72,6 @@ void displayThreadDef(void const *argument){
 	
 	while(1){
 		// Clear the display and write group info at top
-		LCD_Clear(LCD_COLOR_WHITE);
 		LCD_SetFont(&Font8x8);
 		LCD_SetTextColor(LCD_COLOR_BLACK);
 		LCD_DisplayStringLine(LINE(0), (uint8_t*)"          uP Group 3           ");
@@ -184,6 +185,11 @@ void displayThreadDef(void const *argument){
 					
 		}		
 		osDelay(300);
+		
+		if(flash_display){
+			LCD_Clear(LCD_COLOR_WHITE);
+			osDelay(300);
+		}
 	}
 	
 }
@@ -232,6 +238,8 @@ void keypadThreadDef(void const *argument){
 				
 				// Signal the transmitter thread to send a command to the other board
 				case 'D':
+					
+					flash_display = 0;
 				
 					// If the mode is on the fly, then save the direction into the direction buffer
 					if(mode == FREE_DRAW_MODE){
@@ -251,6 +259,7 @@ void keypadThreadDef(void const *argument){
 				default:
 					break;
 			}
+			LCD_Clear(LCD_COLOR_WHITE);
 		}
 		
 //		else{
@@ -384,8 +393,17 @@ int main (void) {
 */
 void EXTI15_10_IRQHandler(void)
 {
-	EXTI_ClearITPendingBit(EXTI_Line12|EXTI_Line13|EXTI_Line14|EXTI_Line15);
+	EXTI_ClearITPendingBit(EXTI_Line11|EXTI_Line12|EXTI_Line13);
 	osSignalSet(keypad_thread, KEYPAD_FLAG);
 }
 
+/**
+*@brief Interupt handler for EXTI5 to EXTI9.  Informs uP that a button on the keypad has been pressed
+*@retval None
+*/
+void EXTI9_5_IRQHandler(void)
+{
+	EXTI_ClearITPendingBit(EXTI_Line8);
+	osSignalSet(keypad_thread, KEYPAD_FLAG);
+}
 

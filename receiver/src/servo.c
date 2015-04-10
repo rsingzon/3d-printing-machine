@@ -1,5 +1,6 @@
 #include "servo.h"
 
+static float currentX, currentY;
 
 int servo_init(){
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
@@ -94,10 +95,26 @@ int servo_init(){
 // Moves pen to (x,y)
 void movePen(float x, float y){
 	double leftAngle, rightAngle;
+	
+	// Get motor angles for desired (x,y) position
 	getAngles(&leftAngle, &rightAngle, x, y);
-	printf("%lf, %lf\n", leftAngle, rightAngle);
+	
+	// Get pulse associated with angle and send to motor
 	TIM_SetCompare1(RIGHT_MOTOR, getPulse(rightAngle));
 	TIM_SetCompare1(LEFT_MOTOR, getPulse(leftAngle));
+	
+	// Update internal state
+	currentX= x;
+	currentY = y;
+	
+}
+
+void liftPen(){
+	// TODO
+}
+
+void lowerPen(){
+	// TODO
 }
 
 void drawSquare(){
@@ -122,6 +139,7 @@ void drawSquare(){
 	osDelay(2000);
 	
 	movePen(0, 8.4);
+	
 }
 
 void drawRectangle(){
@@ -146,7 +164,6 @@ void drawRectangle(){
 	osDelay(2000);
 	
 	movePen(0, 8.4);
-	
 }
 
 void drawTriangle(){
@@ -163,6 +180,38 @@ void drawTriangle(){
 	osDelay(2000);
 	
 	movePen(0.0, 8.0);
+}
+
+void moveUp(void){
+	movePen(currentX, currentY+1.0);
+}
+
+void moveDown(void){
+	movePen(currentX, currentY-1.0);
+}
+
+void moveLeft(void){
+	movePen(currentX-1.0, currentY);
+}
+
+void moveRight(void){
+	movePen(currentX+1.0, currentY);
+}
+
+void moveUpRight(void){
+	movePen(currentX+1.0, currentY+1.0);
+}
+
+void moveDownRight(void){
+	movePen(currentX+1.0, currentY-1.0);
+}
+
+void moveDownLeft(void){
+	movePen(currentX-1.0, currentY-1.0);
+}
+
+void moveUpLeft(void){
+	movePen(currentX-1.0, currentY+1.0);
 }
 
 void getAngles(double *leftAngle, double *rightAngle, float x, float y){
