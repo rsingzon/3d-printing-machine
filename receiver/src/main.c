@@ -12,28 +12,65 @@
 #include "cc2500.h"
 #include "servo.h"
 #include "../../lcd/src/commands.h"
+#include "kstate.h"
+#include "accelerometer.h"
 
 #define RECEIVER_FLAG 0x01
+#define ACC_FLAG 0x01
 
+// Global Variables
 uint32_t receiverDelay;
-uint32_t leftMotorDelay;
-uint32_t rightMotorDelay;
-
 uint8_t receiver_enable = 1;
+float roll, pitch;
 
+// Helper method prototypes
 void decode(uint8_t argument);
 
 // Thread prototypes
 void receiverThreadDef(void const *argument);
+void accelerometerThreadDef(void const *argument);
 
 // Thread declarations
 osThreadDef(receiverThreadDef, osPriorityNormal, 1, 0);
 osThreadId receiverThread;
 
+osThreadDef(accelerometerThreadDef, osPriorityNormal, 1, 0);
+osThreadId accelerometerThread;
+
 // Timer declarations
 void receiverCallback(void const *argument);
 osTimerDef (receiverDef, receiverCallback);
 osTimerId receiverTimer;
+
+
+/**
+*@brief Thread to read accelerometer values
+*/
+void accelerometerThreadDef(void const *argument){
+	float angles[2];
+	// Define kalman states for each accelerometer output
+	kalman_state x_state = {0.05, 0.981, 0.0, 0.0, 0.0};
+	kalman_state y_state = {0.05, 0.981, 0.0, 0.0, 0.0};
+	kalman_state z_state = {0.05, 0.981, 0.0, 0.0, 0.0};
+	
+	while(1){
+		
+		// Wait for the accelerometer to set an interrupt
+		osSignalWait(ACC_FLAG, osWaitForever ); 			
+			
+		// Read accelerometers and set the display to the roll
+		readAcc(angles, &x_state, &y_state, &z_state);
+			
+		// Wait for angle mutex before setting the angle
+		//osMutexWait(angle_mutex, osWaitForever);
+		roll = angles[0];	
+		//osMutexRelease(angle_mutex);
+		
+		printf("%lf\n", roll);
+		
+		osSignalClear(accelerometerThread, ACC_FLAG);
+	}
+}
 
 
 /*
@@ -75,6 +112,8 @@ void receiverThreadDef(void const *argument){
 				statusByte = CC2500_Read(&bytesAvailable, 0x7B, 1);
 				
 				printf("Bytes available: %d\n", bytesAvailable);
+				
+				readByte = NULL;
 				
 				// If data is available, print it
 				if(bytesAvailable > 0){
@@ -154,11 +193,38 @@ void decode(uint8_t argument){
 			receiver_enable = 1;
 			break;
 		
+		case UP_LEFT:
+			receiver_enable = 0;
+			moveUpLeft();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case UP_RIGHT:
+			receiver_enable = 0;
+			moveUpRight();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case DOWN_LEFT:
+			receiver_enable = 0;
+			moveDownLeft();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case DOWN_RIGHT:
+			receiver_enable = 0;
+			moveDownRight();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
 		default:
 			break;
 	}
 }
-
 
 /*
  * main: initialize and start the system
@@ -168,6 +234,9 @@ int main (void) {
 	osKernelInitialize();
 	
 	servo_init();
+	
+	initAccelerometer();
+	initAccelerometerInterrupt();
 
 	uint32_t receiverTimerType = 1;
 	receiverTimer = osTimerCreate (osTimer(receiverDef), osTimerPeriodic, &receiverTimerType);
@@ -176,39 +245,21 @@ int main (void) {
 	osTimerStart (receiverTimer, receiverDelay);	
 	
 	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
+	accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
 	
 	osKernelStart();
-	
-	movePen(0.0, 6.4);
-	
-	osDelay(500);
-	
-	lowerPen();
-	
-	osDelay(500);
-	
-	moveUpRight();
-	
-	osDelay(500);
-	
-	moveUpRight();
-	osDelay(500);
-	
-	moveUpRight();
-	
-	osDelay(500);
-	
-	moveDown();
-	
-	osDelay(500);
-	
-	
-	
-	drawSquare();
-
-
 }
 
 void receiverCallback(void const *argument){
 	osSignalSet(receiverThread, RECEIVER_FLAG);
+}
+
+/**
+*@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
+*@retval None
+*/
+void EXTI0_IRQHandler(void)
+{
+	osSignalSet(accelerometerThread, ACC_FLAG);			// Set a signal for the accelerometer thread
+	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
 }
