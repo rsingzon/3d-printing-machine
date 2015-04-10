@@ -150,6 +150,17 @@ int main (void) {
 	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
 	
 	osKernelStart();
+	
+	lowerPen();
+	
+	
+	osDelay(3000);
+	
+	liftPen();
+	
+	osDelay(3000);
+	
+	lowerPen();
 
 
 }
