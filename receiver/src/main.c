@@ -126,6 +126,34 @@ void decode(uint8_t argument){
 			receiver_enable = 1;
 			break;
 		
+		case UP_COMMAND:
+			receiver_enable = 0;
+			moveUp();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case DOWN_COMMAND:
+			receiver_enable = 0;
+			moveDown();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case RIGHT_COMMAND:
+			receiver_enable = 0;
+			moveRight();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case LEFT_COMMAND:
+			receiver_enable = 0;
+			moveLeft();
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
 		default:
 			break;
 	}
@@ -151,16 +179,32 @@ int main (void) {
 	
 	osKernelStart();
 	
-	lowerPen();
+	movePen(0.0, 6.4);
 	
-	
-	osDelay(3000);
-	
-	liftPen();
-	
-	osDelay(3000);
+	osDelay(500);
 	
 	lowerPen();
+	
+	osDelay(500);
+	
+	moveUpRight();
+	
+	osDelay(500);
+	
+	moveUpRight();
+	osDelay(500);
+	
+	moveUpRight();
+	
+	osDelay(500);
+	
+	moveDown();
+	
+	osDelay(500);
+	
+	
+	
+	drawSquare();
 
 
 }
