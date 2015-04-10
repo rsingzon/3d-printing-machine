@@ -14,6 +14,8 @@
 
 #include "keypad.h"
 #include "commands.h"
+#include "kstate.h"
+#include "accelerometer.h"
 
 #include "../../receiver/src/spi.h"
 #include "../../receiver/src/cc2500.h"
@@ -45,19 +47,26 @@ osMutexId num_directions_mutex;
 void displayThreadDef(void const *argument);
 void keypadThreadDef(void const *argument);
 void transmitterThreadDef(void const *argument);
+void accelerometerThreadDef(void const *argument);
 
 
 //Thread declarations
 osThreadDef(displayThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(keypadThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(transmitterThreadDef, osPriorityNormal, 1, 0);
+osThreadDef(accelerometerThreadDef, osPriorityAboveNormal, 1, 0);
 
 osThreadId display_thread;
 osThreadId keypad_thread;
 osThreadId transmitterThread;
+osThreadId accelerometerThread;
+
+float roll;
+float pitch;
 
 #define KEYPAD_FLAG 0x01
 #define TRANSMITTER_FLAG 0x01
+#define ACCELEROMETER_FLAG 0x01
 
 
 static void delay(__IO uint32_t nCount)
@@ -440,6 +449,32 @@ void transmitterThreadDef(void const *argument){
 	}
 }
 
+/**
+*@brief Thread to read accelerometer values
+*/
+void accelerometerThreadDef(void const *argument){
+	float angles[2];
+	// Define kalman states for each accelerometer output
+	kalman_state x_state = {0.05, 0.981, 0.0, 0.0, 0.0};
+	kalman_state y_state = {0.05, 0.981, 0.0, 0.0, 0.0};
+	kalman_state z_state = {0.05, 0.981, 0.0, 0.0, 0.0};
+	
+	while(1){
+		
+		// Wait for the accelerometer to set an interrupt
+		osSignalWait(ACCELEROMETER_FLAG, osWaitForever ); 			
+			
+		// Read accelerometers and set the display to the roll
+		readAcc(angles, &x_state, &y_state, &z_state);
+			
+		// Wait for angle mutex before setting the angle
+		roll = angles[0];	
+		pitch = angles[1];
+		
+		osSignalClear(accelerometerThread, ACCELEROMETER_FLAG);
+	}
+}
+
 
 /*
  * main: initialize and start the system
@@ -463,10 +498,14 @@ int main (void) {
 	// Initialize keypad
 	initKeypad();
 	
+	initAccelerometer();
+	initAccelerometerInterrupt();
+	
 	// Create threads
 	display_thread = osThreadCreate(osThread(displayThreadDef), NULL);
 	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
 	transmitterThread = osThreadCreate(osThread(transmitterThreadDef), NULL);
+	accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
 		
 	// Set default mode
 	mode = SHAPE_MODE;
@@ -497,3 +536,13 @@ void EXTI9_5_IRQHandler(void)
 	osSignalSet(keypad_thread, KEYPAD_FLAG);
 }
 
+
+/**
+*@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
+*@retval None
+*/
+void EXTI0_IRQHandler(void)
+{
+	osSignalSet(accelerometerThread, ACCELEROMETER_FLAG);			// Set a signal for the accelerometer thread
+	EXTI_ClearITPendingBit(EXTI_Line0); 						//Clear the EXTI0 interupt flag
+}
