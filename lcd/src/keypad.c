@@ -1,3 +1,10 @@
+/*!
+ * @file servo.c
+ * @brief Functions to initialize and control keypad
+ * @author Jeffrey Tichelman
+ * @date April 9, 2015
+ */
+
 
 #include "keypad.h"
 
@@ -6,6 +13,10 @@ GPIO_InitTypeDef GPIO_InitStructureKeypadCol;
 GPIO_InitTypeDef GPIO_InitStructureKeypadRow;
 
 
+/**
+  * @brief  Initializes GPIO pins for keypad and configures interrupt on column pins
+  * @retval None
+  */
 void initKeypad(){
 	
 		//enable clock for GPIOE
@@ -60,7 +71,10 @@ void initKeypad(){
 		GPIO_WriteBit(GPIO_ROW, ROWS, Bit_RESET);
 }
 
-//This method returns the integer of the button if 1-4 were pressed, -1 otherwise
+/**
+  * @brief  Resolves the button currently being pressed, if there is one
+  * @retval Character read if valid, 'e' otherwise
+  */
 char get_button_pressed(){
 	if(getColumn()==-1){
 		return 'e';
@@ -94,7 +108,10 @@ char get_button_pressed(){
 	
 }
 
-
+/**
+  * @brief  Determines which column current button press is in
+  * @retval Column number if one is pressed, -1 otherwise
+  */
 int getColumn(){
 	if(!GPIO_ReadInputDataBit(GPIO_COL, COL1)){
 			return 1;
@@ -113,6 +130,10 @@ int getColumn(){
 	}
 }
 
+/**
+  * @brief  Determines which row current button press is in
+  * @retval Row number if one is pressed, -1 otherwise
+  */
 int getRow(){
 	if(!GPIO_ReadInputDataBit(GPIO_ROW, ROW1)){
 			return 1;
@@ -132,7 +153,10 @@ int getRow(){
 	
 }
 
-// Resets Column/Row GPIO's to initial configuration
+/**
+	* @brief  Resets GPIO to initial config: columns input and rows output
+  * @retval None
+  */
 void reset_GPIO(){
 		// Set PIN1 on keypad
 		GPIO_InitStructureKeypadCol.GPIO_Pin = COLUMNS;
@@ -153,7 +177,10 @@ void reset_GPIO(){
 		GPIO_WriteBit(GPIO_ROW, ROWS, Bit_RESET);
 }
 
-// Flip column to output and rows to input
+/**
+	* @brief  Flips GPIO config: rows inpu and columns output
+  * @retval None
+  */
 void flip_GPIO(){
 		GPIO_InitStructureKeypadCol.GPIO_Pin = COLUMNS;
 		GPIO_InitStructureKeypadCol.GPIO_Mode = GPIO_Mode_OUT;
@@ -173,7 +200,12 @@ void flip_GPIO(){
 		GPIO_WriteBit(GPIO_COL, COLUMNS, Bit_RESET);
 }
 
-// Maps row, column combinations to character corresponding to that key
+/**
+  * @brief  Maps column, row index pairs to corresponding button character
+	* @param  column : column index of button pressed
+	* @param  row : row index of column pressed
+  * @retval Character of button at position (row, column)
+  */
 char getValue(int column, int row){
 	switch(column){
 		case 1:
@@ -223,6 +255,11 @@ char getValue(int column, int row){
 	}
 }
 
+/**
+  * @brief  Maps numeric characters to corresponding float value and D(enter) to 10.0
+	* @param  c : character to convert
+  * @retval float representation if c is valid, -1.0 otherwise
+  */
 float char_to_float(char c){
 	switch(c){
 		case '0':
@@ -252,25 +289,10 @@ float char_to_float(char c){
 	}
 }
 
-//this method maps keys 1-4 to corresponding integers, -1 for other keys
-int char_to_int(char c){
-		switch(c){
-			case '4':
-				return 1;
-			case '5':
-				return 2;
-			case '6':
-				return 3;
-			case '7':
-				return 4;
-			case 'D':
-				return 5;
-			default:
-				return -1;
-		}
-	
-}
-
+/**
+  * @brief 	Determines if a button is currently being pressed
+  * @retval 1 if button is being pressed, 0 otherwise
+  */
 int buttonPressed(){
 	if(!GPIO_ReadInputDataBit(GPIO_ROW, ROW1)){
 		return 1;

@@ -165,7 +165,6 @@ void CC2500_Read_Registers(void){
 	for(i = 0; i < NUM_REGISTERS_TO_INIT; i++){
 		CC2500_Read(&state, regAddr, numBytes);
 		printf("Address: %x Value: %x\n", regAddr, state);
-		
 		regAddr++;
 	}	
 }

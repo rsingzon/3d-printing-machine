@@ -68,6 +68,9 @@ static void delay(__IO uint32_t nCount)
   }
 }
 
+/**
+*@brief Thread to handle LCD display based on current state
+*/
 void displayThreadDef(void const *argument){
 	
 	while(1){

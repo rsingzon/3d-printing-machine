@@ -73,9 +73,9 @@ void accelerometerThreadDef(void const *argument){
 }
 
 
-/*
- * @Brief Thread to receive instructions from the LCD board
- */
+/**
+	*@brief Thread to receive instructions from LCD board
+	*/
 void receiverThreadDef(void const *argument){
 	// Enable transmission on the CC2500
 	init_SPI1();
@@ -96,7 +96,7 @@ void receiverThreadDef(void const *argument){
 	statusByte = CC2500_Start_Receive();
 	while((statusByte & 0xF0) != RECEIVING){
 		statusByte = CC2500_No_Op();
-		printf("Status: %02x\n", statusByte);
+		//printf("Status: %02x\n", statusByte);
 	}
 	
 	uint8_t bytesAvailable;
@@ -142,6 +142,11 @@ void receiverThreadDef(void const *argument){
 	}
 }
 
+/**
+  * @brief  Decides what to do with received communication packe
+	* @param  argument : value read from receiver
+  * @retval None
+  */
 void decode(uint8_t argument){
 	switch(argument){
 		case SQUARE_COMMAND:
@@ -227,7 +232,7 @@ void decode(uint8_t argument){
 }
 
 /*
- * main: initialize and start the system
+ * main: initialize and start the system, in particular timers and threads
  */
 
 int main (void) {
@@ -250,6 +255,10 @@ int main (void) {
 	osKernelStart();
 }
 
+/**
+*@brief Callback function for the reciever timer, signifies that microP should check receiver for new data
+*@retval None
+*/
 void receiverCallback(void const *argument){
 	osSignalSet(receiverThread, RECEIVER_FLAG);
 }

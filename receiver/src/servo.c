@@ -1,8 +1,19 @@
+/*!
+ * @file servo.c
+ * @brief Functions to initialize and control motors that move pen
+ * @author Jeffrey Tichelman
+ * @date April 8, 2015
+ */
+
 #include "servo.h"
 
 static float currentX, currentY;
 
-int servo_init(){
+/**
+  * @brief  Initializes timers and GPIO pins to control motors
+  * @retval None
+  */
+void servo_init(){
 	TIM_OCInitTypeDef  TIM_OCInitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure;
 	
@@ -90,11 +101,14 @@ int servo_init(){
 	liftPen();
 	osDelay(500);
 	movePen(0, 10.4);
-	
-	return 0;
 }
 
-// Moves pen to (x,y)
+/**
+  * @brief  Moves pen to position (x,y)
+	* @param  x : x coordinate of destination
+	* @param  y : y coordinate of destination
+  * @retval None
+  */
 void movePen(float x, float y){
 	double leftAngle, rightAngle;
 	
@@ -111,14 +125,26 @@ void movePen(float x, float y){
 	
 }
 
+/**
+  * @brief  Lifts pen from page by moving back motor to 90 degrees
+  * @retval None
+  */
 void liftPen(){
 	TIM_SetCompare1(BACK_MOTOR, NINETY_DEGREE_PULSE);
 }
 
+/**
+  * @brief  Lowers pen to page by moving back motor to 0 degrees
+  * @retval None
+  */
 void lowerPen(){
 	TIM_SetCompare1(BACK_MOTOR, ZERO_DEGREE_PULSE);
 }
 
+/**
+  * @brief  Draws a square with corners at (-1.0, 8.4), (-1.0, 6.4), (1.0, 6.4), (1.0, 8.4) respectively
+  * @retval None
+  */
 void drawSquare(){
 	liftPen();
 	osDelay(500);
@@ -148,6 +174,10 @@ void drawSquare(){
 	
 }
 
+/**
+  * @brief  Draws a rectangle with corners at (-2.0, 8.4), (-2.0, 7.0 ), (1.5, 7.0), (1.5, 8.5) respectively
+  * @retval None
+  */
 void drawRectangle(){
 	liftPen();
 	osDelay(500);
@@ -176,6 +206,10 @@ void drawRectangle(){
 	movePen(0, 8.4);
 }
 
+/**
+  * @brief  Draws a triangle with corners at (0.0, 8.4), (-2.0, 6.0), and (1.5, 6.0) respectively
+  * @retval None
+  */
 void drawTriangle(){
 	liftPen();
 	osDelay(500);
@@ -196,38 +230,78 @@ void drawTriangle(){
 	movePen(0.0, 8.0);
 }
 
+/**
+  * @brief  Moves pen up 1 cm from current position
+  * @retval None
+  */
 void moveUp(void){
 	movePen(currentX, currentY+1.0);
 }
 
+/**
+  * @brief  Moves pen down 1 cm from current position
+  * @retval None
+  */
 void moveDown(void){
 	movePen(currentX, currentY-1.0);
 }
 
+/**
+  * @brief  Moves pen left 1 cm from current position
+  * @retval None
+  */
 void moveLeft(void){
 	movePen(currentX-1.0, currentY);
 }
 
+/**
+  * @brief  Moves pen right 1 cm from current position
+  * @retval None
+  */
 void moveRight(void){
 	movePen(currentX+1.0, currentY);
 }
 
+/**
+  * @brief  Moves pen up 1 cm and right 1 cm from current position
+  * @retval None
+  */
 void moveUpRight(void){
 	movePen(currentX+1.0, currentY+1.0);
 }
 
+/**
+  * @brief  Moves pen down 1 cm and right 1 cm from current position
+  * @retval None
+  */
 void moveDownRight(void){
 	movePen(currentX+1.0, currentY-1.0);
 }
 
+/**
+  * @brief  Moves pen down 1 cm and left 1 cm from current position
+  * @retval None
+  */
 void moveDownLeft(void){
 	movePen(currentX-1.0, currentY-1.0);
 }
 
+/**
+  * @brief  Moves pen up 1 cm and left 1 cm from current position
+  * @retval None
+  */
 void moveUpLeft(void){
 	movePen(currentX-1.0, currentY+1.0);
 }
 
+/**
+  * @brief  Gets motor angles required to have pen at position(x,y)
+	* @param  leftAngle : pointer to location to store calculated left motor angle
+	* @param  rightAngle : pointer to location to store calculated right motor angle
+	* @param  x : x coordinate of destination
+	* @param  y : y coordinate of destination
+  * @retval None
+  */
 void getAngles(double *leftAngle, double *rightAngle, float x, float y){
 	double ab, ad, ac, dx, dy, h, cx1, cx2, cy1, cy2;
 	
@@ -290,11 +364,21 @@ void getAngles(double *leftAngle, double *rightAngle, float x, float y){
 	}
 }
 
+/**
+  * @brief  Converts an angle expressed in radians to the corresponding angle in degrees
+	* @param  radians : angle value expressed in terms of radians
+  * @retval Double representing the same angle in degrees
+  */
 double radiansToDegrees(double radians){
 	return radians * (180.0 / 3.14);
 }
 
-// Converts angle in degrees to duty cycle corresponding to that pulse width
+/**
+  * @brief  Calculates the duty cycle pulse to send motor to certain angle
+	* @param  angle : angle toturn motor to
+  * @retval integer with corresponding duty cycle
+	* Uses linear map with 180 corresponding to 0 degree angle and 780 to 180 degree, respectively
+  */
 int getPulse(int angle){
 	return 180 + angle*(600/180);
 }
