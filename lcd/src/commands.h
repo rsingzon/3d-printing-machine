@@ -46,6 +46,9 @@
 #define LEFT_COMMAND			(uint8_t)	0x52
 #define RIGHT_COMMAND			(uint8_t)	0x53
 
+#define LIFT_PEN_COMMAND	(uint8_t) 0x70
+
+
 #define RESET_POSITION_COMMAND	(uint8_t)	0x99
 
 // Function prototypes
