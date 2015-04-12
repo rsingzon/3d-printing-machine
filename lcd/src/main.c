@@ -15,7 +15,7 @@
 #include "keypad.h"
 #include "commands.h"
 #include "kstate.h"
-#include "accelerometer.h"
+#include "gyroscope.h"
 
 #include "../../receiver/src/spi.h"
 #include "../../receiver/src/cc2500.h"
@@ -47,19 +47,22 @@ osMutexId num_directions_mutex;
 void displayThreadDef(void const *argument);
 void keypadThreadDef(void const *argument);
 void transmitterThreadDef(void const *argument);
-void accelerometerThreadDef(void const *argument);
+//void accelerometerThreadDef(void const *argument);
+void gyroscopeThreadDef(void const *argument);
 
 
 //Thread declarations
 osThreadDef(displayThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(keypadThreadDef, osPriorityNormal, 1, 0);
 osThreadDef(transmitterThreadDef, osPriorityNormal, 1, 0);
-osThreadDef(accelerometerThreadDef, osPriorityAboveNormal, 1, 0);
+//osThreadDef(accelerometerThreadDef, osPriorityAboveNormal, 1, 0);
+osThreadDef(gyroscopeThreadDef, osPriorityAboveNormal, 1, 0);
 
 osThreadId display_thread;
 osThreadId keypad_thread;
 osThreadId transmitterThread;
-osThreadId accelerometerThread;
+//osThreadId accelerometerThread;
+osThreadId gyroscopeThread;
 
 float roll;
 float pitch;
@@ -67,6 +70,7 @@ float pitch;
 #define KEYPAD_FLAG 0x01
 #define TRANSMITTER_FLAG 0x01
 #define ACCELEROMETER_FLAG 0x01
+#define GYROSCOPE_FLAG 0x01
 
 
 static void delay(__IO uint32_t nCount)
@@ -452,6 +456,7 @@ void transmitterThreadDef(void const *argument){
 /**
 *@brief Thread to read accelerometer values
 */
+/*
 void accelerometerThreadDef(void const *argument){
 	float angles[2];
 	// Define kalman states for each accelerometer output
@@ -474,7 +479,24 @@ void accelerometerThreadDef(void const *argument){
 		osSignalClear(accelerometerThread, ACCELEROMETER_FLAG);
 	}
 }
+*/
 
+/** 
+ * @brief Thread to read gyroscope values
+ */
+void gyroscopeThreadDef(void const *argument){
+		
+	L3GD20_Rotation rotations;
+	while(1){
+		getRotation(&rotations);
+		
+		printf("X: %d\n",rotations.X);
+		printf("Y: %d\n",rotations.Y);
+		printf("Z: %d\n\n",rotations.Z);
+		
+		osDelay(250);
+	}
+}
 
 /*
  * main: initialize and start the system
@@ -495,17 +517,23 @@ int main (void) {
   /* Set LCD foreground layer as the current layer */
   LCD_SetLayer(LCD_FOREGROUND_LAYER);
 	
+	// Clear screen
+	LCD_Clear(LCD_COLOR_WHITE);
+	
 	// Initialize keypad
 	initKeypad();
 	
-	initAccelerometer();
-	initAccelerometerInterrupt();
+	initGyroscope();
+	
+	//initAccelerometer();
+	//initAccelerometerInterrupt();
 	
 	// Create threads
 	display_thread = osThreadCreate(osThread(displayThreadDef), NULL);
 	keypad_thread = osThreadCreate(osThread(keypadThreadDef), NULL);
 	transmitterThread = osThreadCreate(osThread(transmitterThreadDef), NULL);
-	accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
+	//accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
+	gyroscopeThread = osThreadCreate(osThread(gyroscopeThreadDef), NULL);
 		
 	// Set default mode
 	mode = SHAPE_MODE;
@@ -541,8 +569,8 @@ void EXTI9_5_IRQHandler(void)
 *@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
 *@retval None
 */
-void EXTI0_IRQHandler(void)
-{
-	osSignalSet(accelerometerThread, ACCELEROMETER_FLAG);			// Set a signal for the accelerometer thread
-	EXTI_ClearITPendingBit(EXTI_Line0); 						//Clear the EXTI0 interupt flag
-}
+//void EXTI0_IRQHandler(void)
+//{
+//	osSignalSet(accelerometerThread, ACCELEROMETER_FLAG);			// Set a signal for the accelerometer thread
+//	EXTI_ClearITPendingBit(EXTI_Line0); 						//Clear the EXTI0 interupt flag
+//}
