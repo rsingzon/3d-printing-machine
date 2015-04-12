@@ -11,7 +11,7 @@
 #define __CC2500_H
 
 // Channel
-#define CHANNEL								5
+#define CHANNEL								24
 
 // Configuration registers
 #define RESET_CC2500_COMMAND	0x30

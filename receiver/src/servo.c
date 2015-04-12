@@ -101,6 +101,7 @@ void servo_init(){
 	liftPen();
 	osDelay(500);
 	movePen(0, 10.4);
+	lowerPen();
 }
 
 /**
@@ -223,7 +224,7 @@ void drawTriangle(){
 	
 	osDelay(2000);
 	
-	movePen(1.2, 6.0);
+	movePen(1.2, 7.0);
 	
 	osDelay(2000);
 	
