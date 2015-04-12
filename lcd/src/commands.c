@@ -43,7 +43,6 @@ uint8_t sendShape(uint8_t shape){
 uint8_t sendFreeDraw(uint8_t direction){
 	uint8_t statusByte;
 	uint8_t message;
-	int count = 0;
 	
 	message = direction;
 	statusByte = CC2500_Write(&message, TX_FIFO_BYTE_ADDRESS, 1);

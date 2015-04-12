@@ -31,10 +31,10 @@
 #define GPIO_ROW GPIOE
 
 
-void initKeypad();
+void initKeypad(void);
 char get_button_pressed(void);
-int getColumn();
-int getRow();
+int getColumn(void);
+int getRow(void);
 void reset_GPIO(void);
 void flip_GPIO(void);
 char getValue(int column, int row);

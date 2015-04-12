@@ -72,15 +72,6 @@ float pitch;
 #define ACCELEROMETER_FLAG 0x01
 #define GYROSCOPE_FLAG 0x01
 
-
-static void delay(__IO uint32_t nCount)
-{
-  __IO uint32_t index = 0; 
-  for(index = 100000*nCount; index != 0; index--)
-  {
-  }
-}
-
 /**
 *@brief Thread to handle LCD display based on current state
 */

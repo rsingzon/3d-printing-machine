@@ -253,6 +253,7 @@ char getValue(int column, int row){
 					return 'D';
 			}	
 	}
+	return 'e';
 }
 
 /**

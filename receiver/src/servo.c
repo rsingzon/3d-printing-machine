@@ -303,7 +303,7 @@ void moveUpLeft(void){
   * @retval None
   */
 void getAngles(double *leftAngle, double *rightAngle, float x, float y){
-	double ab, ad, ac, dx, dy, h, cx1, cx2, cy1, cy2;
+	double ab, ad, dx, dy, h, cx1, cx2, cy1, cy2;
 	
 	ab = sqrt(pow(x+1.9,2) + pow(y, 2));
 	
