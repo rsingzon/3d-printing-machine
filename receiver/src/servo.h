@@ -26,8 +26,14 @@
 
 #define ALL_MOTORS GPIO_Pin_4|GPIO_Pin_6|GPIO_Pin_14
 
+#define MAX_X 4.0
+#define MIN_X -4.0
+#define MAX_Y 10.0
+#define MIN_Y 5.0
+
 
 void servo_init(void);
+void resetPen(void);
 void movePen(float x, float y);
 void liftPen(void);
 void lowerPen(void);

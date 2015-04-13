@@ -11,12 +11,15 @@
 #include "spi.h"
 #include "cc2500.h"
 #include "servo.h"
-#include "E:/lcd/src/commands.h"
+#include "../../lcd/src/commands.h"
 #include "kstate.h"
-#include "accelerometer_manager.h"
+#include "accelerometer.h"
 
 #define RECEIVER_FLAG 0x01
 #define ACC_FLAG 0x01
+
+#define MOVE_THRESHOLD 45
+#define LIFT_THRESHOLD 10
 
 
 // Global Variables
@@ -41,14 +44,14 @@ osThreadId receiverThread;
 osThreadDef(accelerometerThreadDef, osPriorityNormal, 1, 0);
 osThreadId accelerometerThread;
 
+// Mutex declarations
+osMutexDef(Mutex_Motor);				
+osMutexId motor_mutex;
+
 // Timer declarations
 void receiverCallback(void const *argument);
 osTimerDef (receiverDef, receiverCallback);
 osTimerId receiverTimer;
-
-void accelerometerCallback(void const *argument);
-osTimerDef (accelerometerDef, receiverCallback);
-osTimerId accelerometerTimer;
 
 
 /**
@@ -62,54 +65,78 @@ void accelerometerThreadDef(void const *argument){
 	kalman_state y_state = {0.05, 0.981, 0.0, 0.0, 0.0};
 	kalman_state z_state = {0.05, 0.981, 0.0, 0.0, 0.0};
 	
-	
 	float reference_pitch = 0;
 	float reference_roll = 0;
 	
 	float pitch;
 	float roll;
 	
+	int zero_angle_count = 0;
+	
+	
 	while(1){
-		//osSignalWait(ACC_FLAG, osWaitForever ); 
-		getACCAngles(angles);
+		osSignalWait(ACC_FLAG, osWaitForever ); 
+		readAcc(angles, &x_state, &y_state, &z_state);
 		
-		pitch = angles[0];
-		roll = angles[1];
-		printf("Pitch: %f\n", pitch);
-		printf("Roll: %f\n", roll);
+		roll = angles[0];
+		pitch = angles[1];
 		
-		if((abs(angles[0]) > 5.0 || abs(angles[1]) > 5.0) && pen_lifted == 0){
+		// Lift the pen if the one of the angles changes from zero
+		if((abs(pitch) > LIFT_THRESHOLD || abs(roll) > LIFT_THRESHOLD) && pen_lifted == 0){
+			osMutexWait(motor_mutex, osWaitForever);
 			liftPen();
+			osMutexRelease(motor_mutex);
 			osDelay(500);
 			pen_lifted = 1;
 		}
 		
+		// Move the pen one direction of the angle 
 		if(pen_lifted == 1){
-			if(pitch < -45){
-				moveLeft();
-				osDelay(100);
+			if(pitch < -MOVE_THRESHOLD){
+				osMutexWait(motor_mutex, osWaitForever);
+				moveDown();
+				osMutexRelease(motor_mutex);
+				osDelay(1000);
 			}
-			else if(pitch > 45){
-				moveRight();
-				osDelay(100);
+			else if(pitch > MOVE_THRESHOLD){
+				osMutexWait(motor_mutex, osWaitForever);
+				moveUp();
+				osMutexRelease(motor_mutex);
+				osDelay(1000);
 			}
 			
-			if(roll < -45){
-				moveUp();
-				osDelay(100);
+			if(roll < -MOVE_THRESHOLD){
+				osMutexWait(motor_mutex, osWaitForever);
+				moveRight();
+				osMutexRelease(motor_mutex);
+				osDelay(1000);
 			}
-			else if(roll > 45){
-				moveDown();
-				osDelay(100);
+			else if(roll > MOVE_THRESHOLD){
+				osMutexWait(motor_mutex, osWaitForever);
+				moveLeft();
+				osMutexRelease(motor_mutex);
+				osDelay(1000);
 			}
-		}
 		
-		if(pen_lifted == 1 && (abs(pitch) < 5.0 || abs(roll) < 5.0)){
-			lowerPen();
-			pen_lifted = 0;
+			// Lower the pen once the angle stabilizes at zero
+			if(zero_angle_count > 100){
+				osMutexWait(motor_mutex, osWaitForever);
+				lowerPen();
+				osMutexRelease(motor_mutex);
+				zero_angle_count=0;
+				osDelay(500);
+				pen_lifted = 0;
+			}
+			else if(abs(pitch) < LIFT_THRESHOLD && abs(roll) < LIFT_THRESHOLD){
+				zero_angle_count++;
+			}	
+			else{
+				zero_angle_count=0;
+			}
+			
 		}
-		
-		//osSignalClear(accelerometerThread, ACC_FLAG);
+				
+		osSignalClear(accelerometerThread, ACC_FLAG);
 	}
 }
 
@@ -152,7 +179,7 @@ void receiverThreadDef(void const *argument){
 				osSignalWait(RECEIVER_FLAG, osWaitForever);
 				statusByte = CC2500_Read(&bytesAvailable, 0x7B, 1);
 				
-				printf("Bytes available: %d\n", bytesAvailable);
+				//printf("Bytes available: %d\n", bytesAvailable);
 				
 				readByte = NULL;
 				
@@ -160,9 +187,6 @@ void receiverThreadDef(void const *argument){
 				if(bytesAvailable > 0){
 					statusByte = CC2500_Read(&readByte, RX_FIFO_BYTE_ADDRESS, 1);
 					printf("Data: %02x\n", readByte);
-					
-					//statusByte = CC2500_Read(readCommand, RX_FIFO_BURST_ADDRESS, 8);
-					//printf("Data: %d %d %d %d %d %d %d %d\n", readCommand[0],readCommand[1],readCommand[2],readCommand[3],readCommand[4],readCommand[5],readCommand[6],readCommand[7]);
 				}
 				
 				decode(readByte);
@@ -184,85 +208,116 @@ void receiverThreadDef(void const *argument){
 }
 
 /**
-  * @brief  Decides what to do with received communication packe
+  * @brief  Decides what to do with received communication packet
 	* @param  argument : value read from receiver
   * @retval None
   */
 void decode(uint8_t argument){
 	switch(argument){
 		case SQUARE_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			drawSquare();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case RECTANGLE_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			drawRectangle();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case TRIANGLE_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			drawTriangle();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case UP_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveUp();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case DOWN_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveDown();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case RIGHT_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveRight();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case LEFT_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveLeft();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case UP_LEFT:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveUpLeft();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case UP_RIGHT:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveUpRight();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case DOWN_LEFT:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveDownLeft();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
 		
 		case DOWN_RIGHT:
+			osMutexWait(motor_mutex, osWaitForever);
 			receiver_enable = 0;
 			moveDownRight();
+			osMutexRelease(motor_mutex);
+			osDelay(1000);
+			receiver_enable = 1;
+			break;
+		
+		case RESET_POSITION_COMMAND:
+			osMutexWait(motor_mutex, osWaitForever);
+			receiver_enable = 0;
+			resetPen();
+			osMutexRelease(motor_mutex);
 			osDelay(1000);
 			receiver_enable = 1;
 			break;
@@ -277,27 +332,22 @@ void decode(uint8_t argument){
  */
 
 
+
 int main (void) {
 	osKernelInitialize();
 	
 	servo_init();
 	
-	initializeAccelerometer();
-	//interrupt_configuration();
-	
-	//initAccelerometerInterrupt();
+	initAccelerometer();
+	initAccelerometerInterrupt();
 
 	uint32_t receiverTimerType = 1;
 	receiverTimer = osTimerCreate (osTimer(receiverDef), osTimerPeriodic, &receiverTimerType);
 	
 	receiverDelay = 100;
-	osTimerStart (receiverTimer, receiverDelay);	
+	osTimerStart (receiverTimer, receiverDelay);		
 	
-	uint32_t accelerometerTimerType = 1;
-	accelerometerTimer = osTimerCreate (osTimer(accelerometerDef), osTimerPeriodic, &accelerometerTimerType);
-	
-	accelerometerDelay = 100;
-	osTimerStart (accelerometerTimer, accelerometerDelay);	
+	motor_mutex = osMutexCreate(osMutex (Mutex_Motor));
 	
 	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
 	accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
@@ -314,19 +364,11 @@ void receiverCallback(void const *argument){
 }
 
 /**
-*@brief Callback function for the accelerometer timer
-*@retval None
-*/
-void accelerometerCallback(void const *argument){
-	osSignalSet(accelerometerThread, ACC_FLAG);
-}
-
-/**
 *@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
 *@retval None
 */
-//void EXTI0_IRQHandler(void)
-//{
-//	osSignalSet(accelerometerThread, ACC_FLAG);			// Set a signal for the accelerometer thread
-//	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
-//}
+void EXTI0_IRQHandler(void)
+{
+	osSignalSet(accelerometerThread, ACC_FLAG);			// Set a signal for the accelerometer thread
+	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
+}

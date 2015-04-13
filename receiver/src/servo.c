@@ -97,10 +97,21 @@ void servo_init(){
 	TIM_ARRPreloadConfig(TIM4, ENABLE);
 	TIM_Cmd(TIM4, ENABLE);
 
-	// Initialize pen to (0, 10.4);
+	// Initialize pen to (0, 8.0);
 	liftPen();
 	osDelay(500);
-	movePen(0, 10.4);
+	movePen(0.0, 8.0);
+	lowerPen();
+}
+
+/**
+  * @brief  Picks pen up, moves back to starting position and lowers
+  * @retval None
+  */
+void resetPen(){
+	liftPen();
+	osDelay(500);
+	movePen(0, 8.0);
 	lowerPen();
 }
 
@@ -112,17 +123,39 @@ void servo_init(){
   */
 void movePen(float x, float y){
 	double leftAngle, rightAngle;
+	float int_x, int_y;
+	
+	if(x>MAX_X){
+		int_x = MAX_X;
+	}
+	else if (x<MIN_X){
+		int_x = MIN_X;
+	}
+	else{
+		int_x = x;
+	}
+	
+	if(y>MAX_Y){
+		int_y = MAX_Y;
+	}
+	else if (y<MIN_Y){
+		int_y = MIN_Y;
+	}
+	else{
+		int_y = y; 
+	}
+	
 	
 	// Get motor angles for desired (x,y) position
-	getAngles(&leftAngle, &rightAngle, x, y);
+	getAngles(&leftAngle, &rightAngle, int_x, int_y);
 	
 	// Get pulse associated with angle and send to motor
 	TIM_SetCompare1(RIGHT_MOTOR, getPulse(rightAngle));
 	TIM_SetCompare1(LEFT_MOTOR, getPulse(leftAngle));
 	
 	// Update internal state
-	currentX= x;
-	currentY = y;
+	currentX= int_x;
+	currentY = int_y;
 	
 }
 
@@ -139,6 +172,17 @@ void liftPen(){
   * @retval None
   */
 void lowerPen(){
+	TIM_SetCompare1(BACK_MOTOR, getPulse(45));
+	osDelay(100);
+	
+	int i;
+	for(i=45; i>20; i--){
+		TIM_SetCompare1(BACK_MOTOR, getPulse(i));
+		osDelay(50);
+	}
+	
+	TIM_SetCompare1(BACK_MOTOR, getPulse(20));
+	osDelay(100);
 	TIM_SetCompare1(BACK_MOTOR, ZERO_DEGREE_PULSE);
 }
 
@@ -167,7 +211,7 @@ void drawSquare(){
 	
 	osDelay(2000);
 	
-	movePen(1.0, 8.4);
+	movePen(1.45, 8.4);
 	
 	osDelay(2000);
 	
@@ -200,7 +244,7 @@ void drawRectangle(){
 	
 	osDelay(2000);
 	
-	movePen(1.5, 8.25);
+	movePen(1.6, 8.2);
 	
 	osDelay(2000);
 	
@@ -208,7 +252,7 @@ void drawRectangle(){
 }
 
 /**
-  * @brief  Draws a triangle with corners at (0.0, 8.4), (-2.0, 6.0), and (1.5, 6.0) respectively
+  * @brief  Draws a triangle with corners at (0.0, 8.4), (-2.0, 6.0), and (1.0, 6.0) respectively
   * @retval None
   */
 void drawTriangle(){
@@ -224,11 +268,11 @@ void drawTriangle(){
 	
 	osDelay(2000);
 	
-	movePen(1.2, 7.0);
+	movePen(1.0, 6.6);
 	
 	osDelay(2000);
 	
-	movePen(0.0, 8.0);
+	movePen(0.0, 8.4);
 }
 
 /**
