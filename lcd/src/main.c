@@ -61,9 +61,6 @@ osThreadId display_thread;
 osThreadId keypad_thread;
 osThreadId transmitterThread;
 
-float roll;
-float pitch;
-
 #define KEYPAD_FLAG 0x01
 #define TRANSMITTER_FLAG 0x01
 
