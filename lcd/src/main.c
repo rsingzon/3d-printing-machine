@@ -23,7 +23,7 @@
 
 #define MIN_X_COORD -4
 #define MAX_X_COORD 4
-#define MIN_Y_COORD -5
+#define MIN_Y_COORD 5
 #define MAX_Y_COORD 10
 
 /* Mode variable indicates predetermined shapes or on the fly */
@@ -39,7 +39,7 @@ uint8_t shape;
 uint8_t direction;
 uint8_t linesDrawn[DIRECTION_BUFFER_SIZE];
 int x_coord = 0;
-int y_coord = 0;
+int y_coord = 8;
 
 int numDirections = 0;
 
@@ -351,10 +351,13 @@ void keypadThreadDef(void const *argument){
 				case '9':			
 					// If the mode is on the fly, then save the direction into the direction buffer
 					if(mode == FREE_DRAW_MODE){
+						printf("X: %d\n", x_coord);
+						printf("Y: %d\n", y_coord);
+						
 						
 						// Check if the direction exceeds the maximum range of operation
 						// -4 < X < 4
-						// -5 < Y < 10
+						// 5 < Y < 10
 						
 						int isDirectionValid = 1;
 						
@@ -434,6 +437,9 @@ void keypadThreadDef(void const *argument){
 							numDirections++;
 							osSignalSet(transmitterThread, TRANSMITTER_FLAG);	
 						}
+						else{
+							printf("Direction invalid\n");
+						}
 					}
 					
 					// Predefined shape mode
@@ -449,6 +455,8 @@ void keypadThreadDef(void const *argument){
 					// Remove lines in the linesDrawn buffer
 					memset(linesDrawn, 0, DIRECTION_BUFFER_SIZE * sizeof(uint8_t));
 					numDirections = 0;
+					x_coord = 0;
+					y_coord = 8;
 				
 					osSignalSet(transmitterThread, TRANSMITTER_FLAG);
 					break;
