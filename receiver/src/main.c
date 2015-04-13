@@ -11,17 +11,21 @@
 #include "spi.h"
 #include "cc2500.h"
 #include "servo.h"
-#include "../../lcd/src/commands.h"
+#include "E:/lcd/src/commands.h"
 #include "kstate.h"
-#include "accelerometer.h"
+#include "accelerometer_manager.h"
 
 #define RECEIVER_FLAG 0x01
 #define ACC_FLAG 0x01
 
+
 // Global Variables
 uint32_t receiverDelay;
+uint32_t accelerometerDelay;
 uint8_t receiver_enable = 1;
 float roll, pitch;
+uint8_t pen_lifted = 0;
+float starting_point[2] = {0, 10.4};
 
 // Helper method prototypes
 void decode(uint8_t argument);
@@ -42,40 +46,77 @@ void receiverCallback(void const *argument);
 osTimerDef (receiverDef, receiverCallback);
 osTimerId receiverTimer;
 
+void accelerometerCallback(void const *argument);
+osTimerDef (accelerometerDef, receiverCallback);
+osTimerId accelerometerTimer;
+
 
 /**
 *@brief Thread to read accelerometer values
 */
 void accelerometerThreadDef(void const *argument){
+	
 	float angles[2];
 	// Define kalman states for each accelerometer output
 	kalman_state x_state = {0.05, 0.981, 0.0, 0.0, 0.0};
 	kalman_state y_state = {0.05, 0.981, 0.0, 0.0, 0.0};
 	kalman_state z_state = {0.05, 0.981, 0.0, 0.0, 0.0};
 	
+	
+	float reference_pitch = 0;
+	float reference_roll = 0;
+	
+	float pitch;
+	float roll;
+	
 	while(1){
+		//osSignalWait(ACC_FLAG, osWaitForever ); 
+		getACCAngles(angles);
 		
-		// Wait for the accelerometer to set an interrupt
-		osSignalWait(ACC_FLAG, osWaitForever ); 			
+		pitch = angles[0];
+		roll = angles[1];
+		printf("Pitch: %f\n", pitch);
+		printf("Roll: %f\n", roll);
+		
+		if((abs(angles[0]) > 5.0 || abs(angles[1]) > 5.0) && pen_lifted == 0){
+			liftPen();
+			osDelay(500);
+			pen_lifted = 1;
+		}
+		
+		if(pen_lifted == 1){
+			if(pitch < -45){
+				moveLeft();
+				osDelay(100);
+			}
+			else if(pitch > 45){
+				moveRight();
+				osDelay(100);
+			}
 			
-		// Read accelerometers and set the display to the roll
-		readAcc(angles, &x_state, &y_state, &z_state);
-			
-		// Wait for angle mutex before setting the angle
-		//osMutexWait(angle_mutex, osWaitForever);
-		roll = angles[0];	
-		//osMutexRelease(angle_mutex);
+			if(roll < -45){
+				moveUp();
+				osDelay(100);
+			}
+			else if(roll > 45){
+				moveDown();
+				osDelay(100);
+			}
+		}
 		
-		printf("%lf\n", roll);
+		if(pen_lifted == 1 && (abs(pitch) < 5.0 || abs(roll) < 5.0)){
+			lowerPen();
+			pen_lifted = 0;
+		}
 		
-		osSignalClear(accelerometerThread, ACC_FLAG);
+		//osSignalClear(accelerometerThread, ACC_FLAG);
 	}
 }
 
 
-/*
- * @Brief Thread to receive instructions from the LCD board
- */
+/**
+	*@brief Thread to receive instructions from LCD board
+	*/
 void receiverThreadDef(void const *argument){
 	// Enable transmission on the CC2500
 	init_SPI1();
@@ -96,7 +137,7 @@ void receiverThreadDef(void const *argument){
 	statusByte = CC2500_Start_Receive();
 	while((statusByte & 0xF0) != RECEIVING){
 		statusByte = CC2500_No_Op();
-		printf("Status: %02x\n", statusByte);
+		//printf("Status: %02x\n", statusByte);
 	}
 	
 	uint8_t bytesAvailable;
@@ -128,7 +169,7 @@ void receiverThreadDef(void const *argument){
 							
 				statusByte = CC2500_No_Op();
 				
-				osSignalWait(RECEIVER_FLAG, osWaitForever);
+				osSignalClear(receiverThread, RECEIVER_FLAG);
 			}	
 		}
 		// Put the receiver back in receiving state
@@ -142,6 +183,11 @@ void receiverThreadDef(void const *argument){
 	}
 }
 
+/**
+  * @brief  Decides what to do with received communication packe
+	* @param  argument : value read from receiver
+  * @retval None
+  */
 void decode(uint8_t argument){
 	switch(argument){
 		case SQUARE_COMMAND:
@@ -227,16 +273,19 @@ void decode(uint8_t argument){
 }
 
 /*
- * main: initialize and start the system
+ * main: initialize and start the system, in particular timers and threads
  */
+
 
 int main (void) {
 	osKernelInitialize();
 	
 	servo_init();
 	
-	initAccelerometer();
-	initAccelerometerInterrupt();
+	initializeAccelerometer();
+	//interrupt_configuration();
+	
+	//initAccelerometerInterrupt();
 
 	uint32_t receiverTimerType = 1;
 	receiverTimer = osTimerCreate (osTimer(receiverDef), osTimerPeriodic, &receiverTimerType);
@@ -244,22 +293,40 @@ int main (void) {
 	receiverDelay = 100;
 	osTimerStart (receiverTimer, receiverDelay);	
 	
+	uint32_t accelerometerTimerType = 1;
+	accelerometerTimer = osTimerCreate (osTimer(accelerometerDef), osTimerPeriodic, &accelerometerTimerType);
+	
+	accelerometerDelay = 100;
+	osTimerStart (accelerometerTimer, accelerometerDelay);	
+	
 	receiverThread = osThreadCreate(osThread(receiverThreadDef), NULL);
 	accelerometerThread = osThreadCreate(osThread(accelerometerThreadDef), NULL);
 	
 	osKernelStart();
 }
 
+/**
+*@brief Callback function for the reciever timer, signifies that microP should check receiver for new data
+*@retval None
+*/
 void receiverCallback(void const *argument){
 	osSignalSet(receiverThread, RECEIVER_FLAG);
+}
+
+/**
+*@brief Callback function for the accelerometer timer
+*@retval None
+*/
+void accelerometerCallback(void const *argument){
+	osSignalSet(accelerometerThread, ACC_FLAG);
 }
 
 /**
 *@brief Interupt handler for EXTI0.  Informs uP that a sample is ready
 *@retval None
 */
-void EXTI0_IRQHandler(void)
-{
-	osSignalSet(accelerometerThread, ACC_FLAG);			// Set a signal for the accelerometer thread
-	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
-}
+//void EXTI0_IRQHandler(void)
+//{
+//	osSignalSet(accelerometerThread, ACC_FLAG);			// Set a signal for the accelerometer thread
+//	EXTI_ClearITPendingBit(EXTI_Line0); //Clear the EXTI0 interupt flag
+//}

@@ -1,3 +1,12 @@
+/**
+  ******************************************************************************************
+  * @file    keypad.h
+  * @author  Jeffrey Tichelman
+  * @date    April 9, 2015
+  * @brief   This file contains include statements, definitions and fn prototypes to handle keypad
+  ******************************************************************************************
+	**/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include "stm32f4xx.h"
@@ -22,13 +31,12 @@
 #define GPIO_ROW GPIOE
 
 
-void initKeypad();
+void initKeypad(void);
 char get_button_pressed(void);
-int getColumn();
-int getRow();
+int getColumn(void);
+int getRow(void);
 void reset_GPIO(void);
 void flip_GPIO(void);
 char getValue(int column, int row);
 float char_to_float(char c);
-int char_to_int(char c);
 int buttonPressed(void);

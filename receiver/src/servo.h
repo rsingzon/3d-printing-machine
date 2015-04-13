@@ -1,3 +1,12 @@
+/**
+  ******************************************************************************************
+  * @file    servo.h
+  * @author  Jeffrey Tichelman
+  * @date    April 8, 2015
+  * @brief   This file contains include statements, definitions and fn prototypes to control motors
+  ******************************************************************************************
+	**/
+
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
@@ -18,8 +27,7 @@
 #define ALL_MOTORS GPIO_Pin_4|GPIO_Pin_6|GPIO_Pin_14
 
 
-
-int servo_init(void);
+void servo_init(void);
 void movePen(float x, float y);
 void liftPen(void);
 void lowerPen(void);

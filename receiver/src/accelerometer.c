@@ -7,7 +7,10 @@
 
 #include "accelerometer.h"
 
-
+/**
+  * @brief  Initializes on board accelerometer
+  * @retval None
+  */
 void initAccelerometer() 
 {
 	
@@ -35,6 +38,10 @@ void initAccelerometer()
 	LIS3DSH_DataReadyInterruptConfig(&interrupt_init);
 }
 
+/**
+  * @brief  Configures an NVIC interrupt to accelerometer line
+  * @retval None
+  */
 void initAccelerometerInterrupt(void)
 {
 	// Enable the clock for the external interrupt line (EXTI)
@@ -65,6 +72,14 @@ void initAccelerometerInterrupt(void)
 	NVIC_Init(&NVIC_init); 														//Configure the NVIC for use with EXTI
 }
 
+/**
+  * @brief  Read accelerometer values, filter and calculate pitch and roll angle
+	* @param  angles : pointer to location to store calcuated pitch and roll angles
+	* @param  x_state : current filter state of acc's x value
+	* @param  y_state : current filter state of acc's y value
+	* @param  z_state : current filter state of acc's z value
+  * @retval None
+  */
 void readAcc(float *angles, kalman_state *x_state, kalman_state *y_state, kalman_state *z_state){
 	
 	float rawAccValues[3]; 				// Raw values
@@ -98,6 +113,12 @@ void readAcc(float *angles, kalman_state *x_state, kalman_state *y_state, kalman
 	
 }
 
+/**
+  * @brief  Adjusts accelerometer values based on measured bias
+	* @param  rawValues : pointer to location of raw accelerometer readings
+	* @param  adjustedValues : pointer to location to store adjusted reading
+  * @retval None
+  */
 void adjustAccValues(float *rawValues, float *adjustedValues){
 		
 		// Add or subtract the offset to each of the values for the axes
@@ -123,6 +144,12 @@ void adjustAccValues(float *rawValues, float *adjustedValues){
 		}
 }
 
+/**
+  * @brief  Calculates roll and pitch angles from accelerometer readings
+	* @param  accValues : pointer to values given by accelerometer
+	* @param  angles : pointer to location to store calculated roll and pitch angles
+  * @retval None
+  */
 void toAngles(float *accValues, float *angles)
 {
     float x = accValues[0];
