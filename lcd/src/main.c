@@ -21,6 +21,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#define MIN_X_COORD -4
+#define MAX_X_COORD 4
+#define MIN_Y_COORD -5
+#define MAX_Y_COORD 10
+
 /* Mode variable indicates predetermined shapes or on the fly */
 /* 0 = shapes; 1 = on the fly; 2 = reset position */
 uint8_t mode;
@@ -33,6 +38,9 @@ uint8_t shape;
 /* 0 = UP; 1 = DOWN; 2 = LEFT ; 3 = RIGHT */
 uint8_t direction;
 uint8_t linesDrawn[DIRECTION_BUFFER_SIZE];
+int x_coord = 0;
+int y_coord = 0;
+
 int numDirections = 0;
 
 // Define mutexes
@@ -116,7 +124,7 @@ void displayThreadDef(void const *argument){
 			int count = 0;
 			uint16_t x_start = 120;
 			uint16_t y_start = 200;
-			uint16_t length = 30;		
+			uint16_t length = 15;		
 
 			// Display lines that have already been drawn on the page
 			while(linesDrawn[count] != 0){
@@ -343,11 +351,95 @@ void keypadThreadDef(void const *argument){
 				case '9':			
 					// If the mode is on the fly, then save the direction into the direction buffer
 					if(mode == FREE_DRAW_MODE){
-						linesDrawn[numDirections] = direction;
-						numDirections++;
+						
+						// Check if the direction exceeds the maximum range of operation
+						// -4 < X < 4
+						// -5 < Y < 10
+						
+						int isDirectionValid = 1;
+						
+						switch(direction){
+							case UP:
+								if(y_coord >= MAX_Y_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									y_coord++;
+								}
+								break;
+							case DOWN:
+								if(y_coord <= MIN_Y_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									y_coord--;
+								}
+								break;
+							case LEFT:
+								if(x_coord <= MIN_X_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									x_coord--;
+								}
+								break;
+							case RIGHT:
+								if(x_coord >= MAX_X_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									x_coord++;
+								}
+								break;
+							case UP_LEFT:
+								if(x_coord <= MIN_X_COORD || y_coord >= MAX_Y_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									x_coord--;
+									y_coord++;
+								}
+								break;
+							case UP_RIGHT:
+								if(x_coord >= MAX_X_COORD || y_coord >= MAX_Y_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									x_coord++;
+									y_coord++;
+								}
+								break;
+							case DOWN_LEFT:
+								if(x_coord <= MIN_X_COORD || y_coord <= MIN_Y_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									x_coord--;
+									y_coord--;
+								}
+								break;
+							case DOWN_RIGHT:
+								if(x_coord >= MAX_X_COORD || y_coord <= MIN_Y_COORD){
+									isDirectionValid = 0;
+								}
+								else{
+									x_coord++;
+									y_coord--;
+								}
+								break;
+						}
+						
+						if(isDirectionValid){
+							linesDrawn[numDirections] = direction;
+							numDirections++;
+							osSignalSet(transmitterThread, TRANSMITTER_FLAG);	
+						}
 					}
-				
-					osSignalSet(transmitterThread, TRANSMITTER_FLAG);
+					
+					// Predefined shape mode
+					else{
+						osSignalSet(transmitterThread, TRANSMITTER_FLAG);	
+					}
 					break;
 				
 				// Resets the arm back to its original position and clears the free draw buffer
@@ -356,6 +448,7 @@ void keypadThreadDef(void const *argument){
 				
 					// Remove lines in the linesDrawn buffer
 					memset(linesDrawn, 0, DIRECTION_BUFFER_SIZE * sizeof(uint8_t));
+					numDirections = 0;
 				
 					osSignalSet(transmitterThread, TRANSMITTER_FLAG);
 					break;
